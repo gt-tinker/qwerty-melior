@@ -2,11 +2,8 @@ use super::DialectRegistry;
 use crate::{context::Context, dialect::Dialect, string_ref::StringRef};
 use qwerty_mlir_sys::{
     mlirDialectHandleGetNamespace, mlirDialectHandleInsertDialect, mlirDialectHandleLoadDialect,
-    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__async__, mlirGetDialectHandle__cf__,
-    mlirGetDialectHandle__func__, mlirGetDialectHandle__gpu__, mlirGetDialectHandle__linalg__,
-    mlirGetDialectHandle__llvm__, mlirGetDialectHandle__pdl__, mlirGetDialectHandle__quant__,
-    mlirGetDialectHandle__scf__, mlirGetDialectHandle__shape__,
-    mlirGetDialectHandle__sparse_tensor__, mlirGetDialectHandle__tensor__, MlirDialectHandle,
+    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__cf__, mlirGetDialectHandle__func__,
+    mlirGetDialectHandle__llvm__, mlirGetDialectHandle__scf__, MlirDialectHandle,
 };
 
 /// A dialect handle.
@@ -16,11 +13,6 @@ pub struct DialectHandle {
 }
 
 impl DialectHandle {
-    /// Creates a `async` dialect handle.
-    pub fn r#async() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__async__()) }
-    }
-
     /// Creates a `cf` dialect handle.
     pub fn cf() -> Self {
         unsafe { Self::from_raw(mlirGetDialectHandle__cf__()) }
@@ -31,49 +23,14 @@ impl DialectHandle {
         unsafe { Self::from_raw(mlirGetDialectHandle__func__()) }
     }
 
-    /// Creates a `gpu` dialect handle.
-    pub fn gpu() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__gpu__()) }
-    }
-
-    /// Creates a `linalg` dialect handle.
-    pub fn linalg() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__linalg__()) }
-    }
-
     /// Creates a `llvm` dialect handle.
     pub fn llvm() -> Self {
         unsafe { Self::from_raw(mlirGetDialectHandle__llvm__()) }
     }
 
-    /// Creates a `pdl` dialect handle.
-    pub fn pdl() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__pdl__()) }
-    }
-
-    /// Creates a `quant` dialect handle.
-    pub fn quant() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__quant__()) }
-    }
-
     /// Creates a `scf` dialect handle.
     pub fn scf() -> Self {
         unsafe { Self::from_raw(mlirGetDialectHandle__scf__()) }
-    }
-
-    /// Creates a `shape` dialect handle.
-    pub fn shape() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__shape__()) }
-    }
-
-    /// Creates a `sparse_tensor` dialect handle.
-    pub fn sparse_tensor() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__sparse_tensor__()) }
-    }
-
-    /// Creates a `tensor` dialect handle.
-    pub fn tensor() -> Self {
-        unsafe { Self::from_raw(mlirGetDialectHandle__tensor__()) }
     }
 
     /// Returns a namespace.

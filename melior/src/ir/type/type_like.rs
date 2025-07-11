@@ -1,6 +1,8 @@
 use super::TypeId;
 use crate::{context::ContextRef, dialect::Dialect};
-use qwerty_mlir_sys::{mlirTypeDump, mlirTypeGetContext, mlirTypeGetDialect, mlirTypeGetTypeID, MlirType};
+use qwerty_mlir_sys::{
+    mlirTypeDump, mlirTypeGetContext, mlirTypeGetDialect, mlirTypeGetTypeID, MlirType,
+};
 
 /// A trait for type-like types.
 pub trait TypeLike<'c> {
@@ -29,9 +31,7 @@ pub trait TypeLike<'c> {
 
     melior_macro::type_check_functions!(
         // spell-checker: disable
-        mlirTypeIsAAnyQuantizedType,
         mlirTypeIsABF16,
-        mlirTypeIsACalibratedQuantizedType,
         mlirTypeIsAComplex,
         mlirTypeIsAF16,
         mlirTypeIsAF32,
@@ -44,34 +44,18 @@ pub trait TypeLike<'c> {
         mlirTypeIsAFloat8E5M2,
         mlirTypeIsAFloat8E5M2FNUZ,
         mlirTypeIsAFunction,
-        mlirTypeIsAGPUAsyncTokenType,
         mlirTypeIsAIndex,
         mlirTypeIsAInteger,
         mlirTypeIsALLVMPointerType,
         mlirTypeIsALLVMStructType,
         mlirTypeIsAMemRef,
         mlirTypeIsANone,
-        mlirTypeIsANVGPUTensorMapDescriptorType,
         mlirTypeIsAOpaque,
-        mlirTypeIsAPDLAttributeType,
-        mlirTypeIsAPDLOperationType,
-        mlirTypeIsAPDLRangeType,
-        mlirTypeIsAPDLType,
-        mlirTypeIsAPDLTypeType,
-        mlirTypeIsAPDLValueType,
-        mlirTypeIsAQuantizedType,
         mlirTypeIsARankedTensor,
         mlirTypeIsAShaped,
         mlirTypeIsATensor,
         mlirTypeIsATF32,
-        mlirTypeIsATransformAnyOpType,
-        mlirTypeIsATransformAnyParamType,
-        mlirTypeIsATransformAnyValueType,
-        mlirTypeIsATransformOperationType,
-        mlirTypeIsATransformParamType,
         mlirTypeIsATuple,
-        mlirTypeIsAUniformQuantizedPerAxisType,
-        mlirTypeIsAUniformQuantizedType,
         mlirTypeIsAUnrankedMemRef,
         mlirTypeIsAUnrankedTensor,
         mlirTypeIsAVector,
