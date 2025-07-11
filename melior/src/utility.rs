@@ -1,12 +1,12 @@
 //! Utility functions.
 
 use crate::{
-    context::Context, dialect::DialectRegistry, ir::Module, logical_result::LogicalResult, pass,
+    context::Context, dialect::DialectRegistry, logical_result::LogicalResult, pass,
     string_ref::StringRef, Error,
 };
 use qwerty_mlir_sys::{
-    mlirLoadIRDLDialects, mlirParsePassPipeline, mlirRegisterAllDialects,
-    mlirRegisterAllLLVMTranslations, mlirRegisterAllPasses, MlirStringRef,
+    mlirParsePassPipeline, mlirRegisterAllDialects, mlirRegisterAllLLVMTranslations,
+    mlirRegisterAllPasses, MlirStringRef,
 };
 use std::{
     ffi::c_void,
@@ -54,12 +54,6 @@ pub fn parse_pass_pipeline(manager: pass::OperationPassManager, source: &str) ->
     }
 }
 
-/// Loads all IRDL dialects in the provided module, registering the dialects in
-/// the module's associated context.
-pub fn load_irdl_dialects(module: &Module) -> bool {
-    unsafe { mlirLoadIRDLDialects(module.to_raw()).value == 1 }
-}
-
 unsafe extern "C" fn handle_parse_error(raw_string: MlirStringRef, data: *mut c_void) {
     let string = StringRef::from_raw(raw_string);
     let data = &mut *(data as *mut Option<String>);
@@ -105,8 +99,6 @@ pub(crate) unsafe extern "C" fn print_string_callback(string: MlirStringRef, dat
 
 #[cfg(test)]
 mod tests {
-    use crate::ir::Location;
-
     use super::*;
 
     #[test]
@@ -155,13 +147,5 @@ mod tests {
         for _ in 0..1000 {
             register_all_passes();
         }
-    }
-
-    #[test]
-    fn test_load_irdl_dialects() {
-        let context = Context::new();
-        let module = Module::new(Location::unknown(&context));
-
-        assert!(load_irdl_dialects(&module));
     }
 }

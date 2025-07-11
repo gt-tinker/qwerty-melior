@@ -55,7 +55,6 @@ pub trait AttributeLike<'c> {
         mlirAttributeIsAIntegerSet,
         mlirAttributeIsAOpaque,
         mlirAttributeIsASparseElements,
-        mlirAttributeIsASparseTensorEncodingAttr,
         mlirAttributeIsAStridedLayout,
         mlirAttributeIsAString,
         mlirAttributeIsASymbolRef,
