@@ -1,5 +1,5 @@
 use crate::ir::{Block, BlockRef};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirRegionAppendOwnedBlock, mlirRegionGetFirstBlock, mlirRegionInsertOwnedBlockAfter,
     mlirRegionInsertOwnedBlockBefore, MlirRegion,
 };

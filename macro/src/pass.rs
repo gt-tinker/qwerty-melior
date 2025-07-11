@@ -23,7 +23,7 @@ pub fn generate(
         stream.extend(TokenStream::from(quote! {
             #[doc = #document]
             pub fn #function_name() -> crate::pass::Pass {
-                unsafe { crate::pass::Pass::__private_from_raw_fn(mlir_sys::#name) }
+                unsafe { crate::pass::Pass::__private_from_raw_fn(qwerty_mlir_sys::#name) }
             }
         }));
 
@@ -35,7 +35,7 @@ pub fn generate(
         stream.extend(TokenStream::from(quote! {
             #[doc = #document]
             pub fn #function_name() {
-                unsafe { mlir_sys::#foreign_function_name() }
+                unsafe { qwerty_mlir_sys::#foreign_function_name() }
             }
         }));
     }

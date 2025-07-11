@@ -1,5 +1,5 @@
 use crate::{ir::Module, logical_result::LogicalResult, string_ref::StringRef, Error};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirExecutionEngineCreate, mlirExecutionEngineDestroy, mlirExecutionEngineDumpToObjectFile,
     mlirExecutionEngineInvokePacked, mlirExecutionEngineLookup, mlirExecutionEngineRegisterSymbol,
     MlirExecutionEngine,

@@ -1,6 +1,6 @@
 use super::PassManager;
 use crate::{pass::Pass, string_ref::StringRef};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirOpPassManagerAddOwnedPass, mlirOpPassManagerGetNestedUnder, mlirPrintPassPipeline,
     MlirOpPassManager, MlirStringRef,
 };

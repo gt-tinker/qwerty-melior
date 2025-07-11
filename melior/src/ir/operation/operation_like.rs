@@ -1,6 +1,6 @@
 use std::{ffi::c_void, fmt::Display};
 
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirOperationDump, mlirOperationGetAttribute, mlirOperationGetAttributeByName,
     mlirOperationGetBlock, mlirOperationGetContext, mlirOperationGetLocation, mlirOperationGetName,
     mlirOperationGetNextInBlock, mlirOperationGetNumAttributes, mlirOperationGetNumOperands,

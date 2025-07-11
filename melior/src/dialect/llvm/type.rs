@@ -4,7 +4,7 @@ use crate::{
     context::Context,
     ir::{Type, TypeLike},
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirLLVMArrayTypeGet, mlirLLVMFunctionTypeGet, mlirLLVMPointerTypeGet,
     mlirLLVMStructTypeLiteralGet, mlirLLVMVoidTypeGet,
 };

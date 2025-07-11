@@ -21,7 +21,7 @@ macro_rules! type_traits {
         }
 
         impl<'c> crate::ir::r#type::TypeLike<'c> for $name<'c> {
-            fn to_raw(&self) -> mlir_sys::MlirType {
+            fn to_raw(&self) -> qwerty_mlir_sys::MlirType {
                 self.r#type.to_raw()
             }
         }

@@ -6,7 +6,7 @@ mod block_like;
 pub use self::{argument::BlockArgument, block_like::BlockLike};
 use super::{Location, Type, TypeLike, Value};
 use crate::{context::Context, utility::print_callback};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirBlockCreate, mlirBlockDestroy, mlirBlockDetach, mlirBlockEqual, mlirBlockPrint, MlirBlock,
 };
 use std::{

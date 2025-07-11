@@ -2,7 +2,7 @@ use crate::{
     ir::{OperationRef, Value, ValueLike},
     Error,
 };
-use mlir_sys::{mlirOpResultGetOwner, mlirOpResultGetResultNumber, MlirValue};
+use qwerty_mlir_sys::{mlirOpResultGetOwner, mlirOpResultGetResultNumber, MlirValue};
 use std::fmt::{self, Display, Formatter};
 
 /// An operation result.

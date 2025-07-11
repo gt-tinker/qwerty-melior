@@ -4,7 +4,7 @@ use crate::{
     context::Context, dialect::DialectRegistry, ir::Module, logical_result::LogicalResult, pass,
     string_ref::StringRef, Error,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirLoadIRDLDialects, mlirParsePassPipeline, mlirRegisterAllDialects,
     mlirRegisterAllLLVMTranslations, mlirRegisterAllPasses, MlirStringRef,
 };

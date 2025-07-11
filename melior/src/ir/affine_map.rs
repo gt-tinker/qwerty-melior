@@ -2,7 +2,7 @@ use crate::{
     context::{Context, ContextRef},
     utility::print_callback,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirAffineMapDump, mlirAffineMapEqual, mlirAffineMapGetContext, mlirAffineMapPrint,
     MlirAffineMap,
 };

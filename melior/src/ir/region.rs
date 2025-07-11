@@ -2,7 +2,7 @@ mod region_like;
 
 pub use self::region_like::RegionLike;
 use super::Block;
-use mlir_sys::{mlirRegionCreate, mlirRegionDestroy, mlirRegionEqual, MlirRegion};
+use qwerty_mlir_sys::{mlirRegionCreate, mlirRegionDestroy, mlirRegionEqual, MlirRegion};
 use std::{
     marker::PhantomData,
     mem::{forget, transmute},
@@ -26,7 +26,7 @@ impl Region<'_> {
     }
 
     /// Converts a region into a raw object.
-    pub const fn into_raw(self) -> mlir_sys::MlirRegion {
+    pub const fn into_raw(self) -> qwerty_mlir_sys::MlirRegion {
         let region = self.raw;
 
         forget(self);

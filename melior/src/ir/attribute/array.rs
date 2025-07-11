@@ -1,6 +1,6 @@
 use super::{Attribute, AttributeLike};
 use crate::{Context, Error};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirArrayAttrGet, mlirArrayAttrGetElement, mlirArrayAttrGetNumElements, MlirAttribute,
 };
 

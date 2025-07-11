@@ -4,7 +4,7 @@ use crate::{
     string_ref::StringRef,
     utility::print_callback,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirLocationCallSiteGet, mlirLocationEqual, mlirLocationFileLineColGet, mlirLocationFusedGet,
     mlirLocationGetContext, mlirLocationNameGet, mlirLocationPrint, mlirLocationUnknownGet,
     MlirLocation,

@@ -2,7 +2,7 @@ use crate::{
     context::{Context, ContextRef},
     string_ref::StringRef,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirIdentifierEqual, mlirIdentifierGet, mlirIdentifierGetContext, mlirIdentifierStr,
     MlirIdentifier,
 };

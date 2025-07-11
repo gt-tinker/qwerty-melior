@@ -1,4 +1,4 @@
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirOpPrintingFlagsCreate, mlirOpPrintingFlagsDestroy,
     mlirOpPrintingFlagsElideLargeElementsAttrs, mlirOpPrintingFlagsEnableDebugInfo,
     mlirOpPrintingFlagsPrintGenericOpForm, mlirOpPrintingFlagsUseLocalScope, MlirOpPrintingFlags,

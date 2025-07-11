@@ -3,7 +3,7 @@ use crate::{
     ContextRef,
 };
 use melior_macro::attribute_check_functions;
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirAttributeDump, mlirAttributeGetContext, mlirAttributeGetType, mlirAttributeGetTypeID,
     MlirAttribute,
 };

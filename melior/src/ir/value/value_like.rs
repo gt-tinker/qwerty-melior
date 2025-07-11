@@ -1,5 +1,5 @@
 use super::Type;
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirValueDump, mlirValueGetType, mlirValueIsABlockArgument, mlirValueIsAOpResult, MlirValue,
 };
 
