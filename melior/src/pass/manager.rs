@@ -7,7 +7,7 @@ use crate::{
     string_ref::StringRef,
     Error,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirPassManagerAddOwnedPass, mlirPassManagerCreate, mlirPassManagerDestroy,
     mlirPassManagerEnableIRPrinting, mlirPassManagerEnableVerifier,
     mlirPassManagerGetAsOpPassManager, mlirPassManagerGetNestedUnder, mlirPassManagerRunOnOp,

@@ -4,7 +4,7 @@ use crate::{
     Error,
 };
 use core::fmt::Display;
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirBlockAddArgument, mlirBlockAppendOwnedOperation, mlirBlockGetArgument,
     mlirBlockGetFirstOperation, mlirBlockGetNextInRegion, mlirBlockGetNumArguments,
     mlirBlockGetParentOperation, mlirBlockGetParentRegion, mlirBlockGetTerminator,

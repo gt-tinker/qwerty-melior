@@ -26,7 +26,7 @@ pub fn generate(identifiers: &[Ident]) -> Result<TokenStream, Box<dyn Error>> {
         stream.extend(TokenStream::from(quote! {
             #[doc = #document]
             fn #function_name(&self) -> bool {
-                unsafe { mlir_sys::#identifier(self.to_raw()) }
+                unsafe { qwerty_mlir_sys::#identifier(self.to_raw()) }
             }
         }));
     }

@@ -3,7 +3,7 @@ use crate::{
     ir::{Type, TypeLike},
     Context, Error,
 };
-use mlir_sys::{mlirFloatAttrDoubleGet, mlirFloatAttrGetValueDouble, MlirAttribute};
+use qwerty_mlir_sys::{mlirFloatAttrDoubleGet, mlirFloatAttrGetValueDouble, MlirAttribute};
 
 /// A float attribute.
 #[derive(Clone, Copy)]

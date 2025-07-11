@@ -20,7 +20,7 @@ use core::{
     fmt,
     mem::{forget, transmute},
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirOperationClone, mlirOperationDestroy, mlirOperationEqual, mlirOperationPrint, MlirOperation,
 };
 use std::{

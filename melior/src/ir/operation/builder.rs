@@ -5,7 +5,7 @@ use crate::{
     string_ref::StringRef,
     Error,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirNamedAttributeGet, mlirOperationCreate, mlirOperationStateAddAttributes,
     mlirOperationStateAddOperands, mlirOperationStateAddOwnedRegions, mlirOperationStateAddResults,
     mlirOperationStateAddSuccessors, mlirOperationStateEnableResultTypeInference,

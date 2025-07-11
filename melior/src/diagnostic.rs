@@ -5,7 +5,7 @@ mod severity;
 
 pub use self::{handler_id::DiagnosticHandlerId, severity::DiagnosticSeverity};
 use crate::{ir::Location, utility::print_callback, Error};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirDiagnosticGetLocation, mlirDiagnosticGetNote, mlirDiagnosticGetNumNotes,
     mlirDiagnosticGetSeverity, mlirDiagnosticPrint, MlirDiagnostic,
 };

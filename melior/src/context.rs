@@ -4,7 +4,7 @@ use crate::{
     logical_result::LogicalResult,
     string_ref::StringRef,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirContextAppendDialectRegistry, mlirContextAttachDiagnosticHandler, mlirContextCreate,
     mlirContextDestroy, mlirContextDetachDiagnosticHandler, mlirContextEnableMultithreading,
     mlirContextEqual, mlirContextGetAllowUnregisteredDialects, mlirContextGetNumLoadedDialects,

@@ -1,4 +1,4 @@
-use mlir_sys::MlirLogicalResult;
+use qwerty_mlir_sys::MlirLogicalResult;
 
 /// A logical result of success or failure.
 #[derive(Clone, Copy, Debug)]

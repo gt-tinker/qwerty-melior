@@ -3,7 +3,7 @@ use crate::{
     ir::{Type, TypeLike},
     Error,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirDenseElementsAttrGet, mlirDenseElementsAttrGetInt32Value,
     mlirDenseElementsAttrGetInt64Value, mlirElementsAttrGetNumElements, MlirAttribute,
 };

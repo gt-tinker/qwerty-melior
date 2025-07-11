@@ -24,7 +24,7 @@ pub use self::{
 };
 use crate::{context::Context, string_ref::StringRef, utility::print_callback};
 use distinct::DisctinctAttribute;
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirAttributeEqual, mlirAttributeGetNull, mlirAttributeParseGet, mlirAttributePrint,
     mlirUnitAttrGet, MlirAttribute,
 };

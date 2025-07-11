@@ -6,7 +6,7 @@ use crate::{
     ir::{r#type::TypeId, OperationRef},
     ContextRef, StringRef,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirCreateExternalPass, mlirExternalPassSignalFailure, MlirContext, MlirExternalPass,
     MlirExternalPassCallbacks, MlirLogicalResult, MlirOperation,
 };

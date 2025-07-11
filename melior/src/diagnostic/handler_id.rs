@@ -1,4 +1,4 @@
-use mlir_sys::MlirDiagnosticHandlerID;
+use qwerty_mlir_sys::MlirDiagnosticHandlerID;
 
 /// Diagnostic handler ID.
 #[derive(Clone, Copy, Debug)]

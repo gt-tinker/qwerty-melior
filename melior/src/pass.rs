@@ -15,7 +15,7 @@ pub use self::{
     manager::PassManager,
     operation_manager::OperationPassManager,
 };
-use mlir_sys::MlirPass;
+use qwerty_mlir_sys::MlirPass;
 
 /// A pass.
 pub struct Pass {

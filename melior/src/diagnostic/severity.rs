@@ -1,5 +1,5 @@
 use crate::Error;
-use mlir_sys::{
+use qwerty_mlir_sys::{
     MlirDiagnosticSeverity_MlirDiagnosticError, MlirDiagnosticSeverity_MlirDiagnosticNote,
     MlirDiagnosticSeverity_MlirDiagnosticRemark, MlirDiagnosticSeverity_MlirDiagnosticWarning,
 };

@@ -1,7 +1,7 @@
 use crate::Error;
 
 use super::{Type, TypeLike};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirShapedTypeGetDimSize, mlirShapedTypeGetElementType, mlirShapedTypeGetRank,
     mlirShapedTypeHasRank,
 };

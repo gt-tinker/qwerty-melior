@@ -18,7 +18,7 @@ pub use self::{
 };
 use super::Location;
 use crate::{context::Context, string_ref::StringRef, utility::print_callback};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirBF16TypeGet, mlirF16TypeGet, mlirF32TypeGet, mlirF64TypeGet, mlirIndexTypeGet,
     mlirNoneTypeGet, mlirTypeEqual, mlirTypeParseGet, mlirTypePrint, mlirVectorTypeGet,
     mlirVectorTypeGetChecked, MlirType,

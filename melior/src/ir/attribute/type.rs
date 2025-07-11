@@ -3,7 +3,7 @@ use crate::{
     ir::{Type, TypeLike},
     Error,
 };
-use mlir_sys::{mlirTypeAttrGet, mlirTypeAttrGetValue, MlirAttribute};
+use qwerty_mlir_sys::{mlirTypeAttrGet, mlirTypeAttrGetValue, MlirAttribute};
 
 /// A type attribute.
 #[derive(Clone, Copy)]

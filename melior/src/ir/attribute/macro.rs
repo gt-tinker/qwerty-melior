@@ -23,7 +23,7 @@ macro_rules! attribute_traits {
         }
 
         impl<'c> crate::ir::attribute::AttributeLike<'c> for $name<'c> {
-            fn to_raw(&self) -> mlir_sys::MlirAttribute {
+            fn to_raw(&self) -> qwerty_mlir_sys::MlirAttribute {
                 self.attribute.to_raw()
             }
         }
@@ -54,7 +54,7 @@ macro_rules! attribute_traits_no_try_from {
         }
 
         impl<'c> crate::ir::attribute::AttributeLike<'c> for $name<'c> {
-            fn to_raw(&self) -> mlir_sys::MlirAttribute {
+            fn to_raw(&self) -> qwerty_mlir_sys::MlirAttribute {
                 self.attribute.to_raw()
             }
         }

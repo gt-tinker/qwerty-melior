@@ -1,6 +1,6 @@
 use super::TypeId;
 use crate::{context::ContextRef, dialect::Dialect};
-use mlir_sys::{mlirTypeDump, mlirTypeGetContext, mlirTypeGetDialect, mlirTypeGetTypeID, MlirType};
+use qwerty_mlir_sys::{mlirTypeDump, mlirTypeGetContext, mlirTypeGetDialect, mlirTypeGetTypeID, MlirType};
 
 /// A trait for type-like types.
 pub trait TypeLike<'c> {

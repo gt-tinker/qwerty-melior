@@ -1,5 +1,5 @@
 use super::TypeId;
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirTypeIDAllocatorAllocateTypeID, mlirTypeIDAllocatorCreate, mlirTypeIDAllocatorDestroy,
     MlirTypeIDAllocator,
 };

@@ -1,6 +1,6 @@
 use super::TypeLike;
 use crate::{ir::Type, Context, Error};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirFunctionTypeGet, mlirFunctionTypeGetInput, mlirFunctionTypeGetNumInputs,
     mlirFunctionTypeGetNumResults, mlirFunctionTypeGetResult, MlirType,
 };

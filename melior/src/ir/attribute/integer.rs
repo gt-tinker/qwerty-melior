@@ -3,7 +3,7 @@ use crate::{
     ir::{Type, TypeLike},
     Error,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirIntegerAttrGet, mlirIntegerAttrGetValueInt, mlirIntegerAttrGetValueSInt,
     mlirIntegerAttrGetValueUInt, MlirAttribute,
 };

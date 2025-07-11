@@ -1,6 +1,6 @@
 use super::DialectRegistry;
 use crate::{context::Context, dialect::Dialect, string_ref::StringRef};
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirDialectHandleGetNamespace, mlirDialectHandleInsertDialect, mlirDialectHandleLoadDialect,
     mlirDialectHandleRegisterDialect, mlirGetDialectHandle__async__, mlirGetDialectHandle__cf__,
     mlirGetDialectHandle__func__, mlirGetDialectHandle__gpu__, mlirGetDialectHandle__linalg__,

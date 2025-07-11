@@ -1,11 +1,10 @@
 [package]
 name = "melior"
-description = "The rustic MLIR bindings in Rust"
+description = "Qwerty version of rustic MLIR bindings in Rust"
 version = "0.25.0"
 edition = "2021"
 license = "Apache-2.0"
-repository = "https://github.com/mlir-rs/melior"
-documentation = "https://mlir-rs.github.io/melior/melior/"
+repository = "https://github.com/qwerty-mlir-rs/qwerty-melior"
 keywords = ["mlir", "llvm"]
 categories = ["api-bindings"]
 
@@ -16,7 +15,7 @@ helpers = ["ods-dialects"]
 
 [dependencies]
 melior-macro = { version = "0.18.0", path = "../macro" }
-mlir-sys = "0.5.0"
+qwerty-mlir-sys = { version = "0.5.0", path = "../../qwerty_mlir_sys" }
 
 [dev-dependencies]
 indoc = "2.0.6"

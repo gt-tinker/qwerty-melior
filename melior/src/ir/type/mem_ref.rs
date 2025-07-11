@@ -3,7 +3,7 @@ use crate::{
     ir::{affine_map::AffineMap, attribute::AttributeLike, Attribute, Location, Type},
     Error,
 };
-use mlir_sys::{
+use qwerty_mlir_sys::{
     mlirMemRefTypeGet, mlirMemRefTypeGetAffineMap, mlirMemRefTypeGetChecked,
     mlirMemRefTypeGetLayout, mlirMemRefTypeGetMemorySpace, MlirType,
 };
