@@ -1,0 +1,10 @@
+---
+source: melior/src/dialect/qwerty.rs
+expression: module.as_operation()
+---
+module {
+  qwerty.func @foo[](%arg0: i1, %arg1: i1, %arg2: i1) irrev-> !qwerty<bitbundle[3]> {
+    %0 = qwerty.bitpack(%arg0, %arg1, %arg2) : (i1, i1, i1) -> !qwerty<bitbundle[3]>
+    qwerty.return %0 : !qwerty<bitbundle[3]>
+  }
+}

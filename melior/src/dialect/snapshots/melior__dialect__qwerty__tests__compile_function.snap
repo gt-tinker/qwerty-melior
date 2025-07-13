@@ -1,0 +1,9 @@
+---
+source: melior/src/dialect/qwerty.rs
+expression: module.as_operation()
+---
+module {
+  qwerty.func @foo[](%arg0: index) irrev-> index {
+    qwerty.return %arg0 : index
+  }
+}
