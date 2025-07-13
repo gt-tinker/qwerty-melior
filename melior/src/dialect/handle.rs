@@ -2,8 +2,10 @@ use super::DialectRegistry;
 use crate::{context::Context, dialect::Dialect, string_ref::StringRef};
 use qwerty_mlir_sys::{
     mlirDialectHandleGetNamespace, mlirDialectHandleInsertDialect, mlirDialectHandleLoadDialect,
-    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__cf__, mlirGetDialectHandle__func__,
-    mlirGetDialectHandle__llvm__, mlirGetDialectHandle__scf__, MlirDialectHandle,
+    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__arith__, mlirGetDialectHandle__cf__,
+    mlirGetDialectHandle__func__, mlirGetDialectHandle__llvm__, mlirGetDialectHandle__math__,
+    mlirGetDialectHandle__qcirc__, mlirGetDialectHandle__qwerty__, mlirGetDialectHandle__scf__,
+    MlirDialectHandle,
 };
 
 /// A dialect handle.
@@ -31,6 +33,26 @@ impl DialectHandle {
     /// Creates a `scf` dialect handle.
     pub fn scf() -> Self {
         unsafe { Self::from_raw(mlirGetDialectHandle__scf__()) }
+    }
+
+    /// Creates a `arith` dialect handle.
+    pub fn arith() -> Self {
+        unsafe { Self::from_raw(mlirGetDialectHandle__arith__()) }
+    }
+
+    /// Creates a `math` dialect handle.
+    pub fn math() -> Self {
+        unsafe { Self::from_raw(mlirGetDialectHandle__math__()) }
+    }
+
+    /// Creates a `qcirc` dialect handle.
+    pub fn qcirc() -> Self {
+        unsafe { Self::from_raw(mlirGetDialectHandle__qcirc__()) }
+    }
+
+    /// Creates a `qwerty` dialect handle.
+    pub fn qwerty() -> Self {
+        unsafe { Self::from_raw(mlirGetDialectHandle__qwerty__()) }
     }
 
     /// Returns a namespace.
