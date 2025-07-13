@@ -47,6 +47,7 @@ impl<'c> Dialect<'c> {
     ///
     /// A raw object must be valid.
     pub unsafe fn from_raw(dialect: MlirDialect) -> Self {
+        assert!(!dialect.ptr.is_null());
         Self {
             raw: dialect,
             _context: Default::default(),
