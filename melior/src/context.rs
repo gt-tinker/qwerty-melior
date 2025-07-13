@@ -147,6 +147,9 @@ impl<'a> PartialEq<ContextRef<'a>> for Context {
 
 impl Eq for Context {}
 
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}
+
 /// A reference to a context.
 #[derive(Clone, Copy, Debug)]
 pub struct ContextRef<'c> {
