@@ -2,9 +2,9 @@
 
 use crate::{
     ir::{
-        attribute::{StringAttribute, TypeAttribute},
+        attribute::{IntegerAttribute, StringAttribute, TypeAttribute},
         operation::OperationBuilder,
-        r#type::{self, TypeLike},
+        r#type::{self, IntegerType, TypeLike},
         Attribute, Identifier, Location, Operation, Region, Type, Value,
     },
     type_traits, Context, Error,
@@ -13,6 +13,22 @@ use qwerty_mlir_sys::{
     mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet, mlirQwertyFunctionTypeGetFunctionType,
     mlirQwertyQBundleTypeGet, MlirType,
 };
+
+// Enums
+
+/// Corresponds to qwerty::EigenstateAttr.
+pub enum Eigenstate {
+    Plus,
+    Minus,
+}
+
+/// Corresponds to qwerty::PrimitiveBasisAttr.
+pub enum PrimitiveBasis {
+    X,
+    Y,
+    Z,
+    Fourier,
+}
 
 // Types
 
@@ -126,7 +142,52 @@ pub fn bitpack<'c>(bits: &[Value<'c, '_>], location: Location<'c>) -> Operation<
         .expect("valid operation")
 }
 
-/// Create a `qwerty.bitpack` operation.
+/// Create a `qwerty.qbpack` operation.
+pub fn qbpack<'c>(qubits: &[Value<'c, '_>], location: Location<'c>) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbpack", location)
+        .add_operands(qubits)
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.qbunpack` operation.
+pub fn qbunpack<'c>(qbundle: Value<'c, '_>, location: Location<'c>) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbunpack", location)
+        .add_operands(&[qbundle])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.qbprep` operation.
+pub fn qbprep<'c>(
+    context: &'c Context,
+    prim_basis: PrimitiveBasis,
+    eigenstate: Eigenstate,
+    dim: IntegerAttribute<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbprep", location)
+        .add_attributes(&[
+            (
+                Identifier::new(context, "prim_basis"),
+                IntegerAttribute::new(IntegerType::new(context, 64).into(), prim_basis as i64)
+                    .into(),
+            ),
+            (
+                Identifier::new(context, "eigenstate"),
+                IntegerAttribute::new(IntegerType::new(context, 64).into(), eigenstate as i64)
+                    .into(),
+            ),
+            (Identifier::new(context, "dim"), dim.into()),
+        ])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.qbphase` operation.
 pub fn qbphase<'c>(
     theta: Value<'c, '_>,
     qbundle_in: Value<'c, '_>,
