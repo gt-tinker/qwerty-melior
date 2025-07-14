@@ -13,9 +13,10 @@ use crate::{
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyBasisVectorAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
+    mlirQwertyBasisAttrGet, mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisVectorAttrGet,
+    mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
     mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
-    mlirQwertySuperposElemAttrGet, mlirQwertyBasisVectorListAttrGet, mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisAttrGet, MlirAttribute, MlirType,
+    mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
 };
 
 // Enums
@@ -208,10 +209,7 @@ pub struct BasisVectorListAttribute<'c> {
 
 impl<'c> BasisVectorListAttribute<'c> {
     /// Creates a qwerty::BasisVectorListAttr.
-    pub fn new(
-        context: &'c Context,
-        vectors: &[BasisVectorAttribute<'c>],
-    ) -> Self {
+    pub fn new(context: &'c Context, vectors: &[BasisVectorAttribute<'c>]) -> Self {
         unsafe {
             Self::from_raw(mlirQwertyBasisVectorListAttrGet(
                 context.to_raw(),
@@ -236,10 +234,7 @@ pub struct BasisElemAttribute<'c> {
 
 impl<'c> BasisElemAttribute<'c> {
     /// Creates a qwerty::BasisElemAttr from a qwerty::BasisVectorListAttr.
-    pub fn from_veclist(
-        context: &'c Context,
-        veclist: BasisVectorListAttribute<'c>,
-    ) -> Self {
+    pub fn from_veclist(context: &'c Context, veclist: BasisVectorListAttribute<'c>) -> Self {
         unsafe {
             Self::from_raw(mlirQwertyBasisElemAttrGetFromVeclist(
                 context.to_raw(),
@@ -263,10 +258,7 @@ pub struct BasisAttribute<'c> {
 
 impl<'c> BasisAttribute<'c> {
     /// Creates a qwerty::BasisAttr.
-    pub fn new(
-        context: &'c Context,
-        elems: &[BasisElemAttribute<'c>],
-    ) -> Self {
+    pub fn new(context: &'c Context, elems: &[BasisElemAttribute<'c>]) -> Self {
         unsafe {
             Self::from_raw(mlirQwertyBasisAttrGet(
                 context.to_raw(),
@@ -277,11 +269,7 @@ impl<'c> BasisAttribute<'c> {
     }
 }
 
-attribute_traits!(
-    BasisAttribute,
-    is_qwerty_basis_vector_list,
-    "qwerty basis"
-);
+attribute_traits!(BasisAttribute, is_qwerty_basis_vector_list, "qwerty basis");
 
 from_subtypes!(
     Attribute,
