@@ -15,7 +15,7 @@ use dashu::integer::UBig;
 use qwerty_mlir_sys::{
     mlirQwertyBasisVectorAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
     mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
-    mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
+    mlirQwertySuperposElemAttrGet, mlirQwertyBasisVectorListAttrGet, mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisAttrGet, MlirAttribute, MlirType,
 };
 
 // Enums
@@ -200,11 +200,97 @@ attribute_traits!(
     "qwerty basis vector"
 );
 
+/// qwerty::BasisVectorListAttr
+#[derive(Clone, Copy)]
+pub struct BasisVectorListAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> BasisVectorListAttribute<'c> {
+    /// Creates a qwerty::BasisVectorListAttr.
+    pub fn new(
+        context: &'c Context,
+        vectors: &[BasisVectorAttribute<'c>],
+    ) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBasisVectorListAttrGet(
+                context.to_raw(),
+                vectors.len() as isize,
+                vectors.as_ptr() as *const _ as *const _,
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    BasisVectorListAttribute,
+    is_qwerty_basis_vector_list,
+    "qwerty basis vector list"
+);
+
+/// qwerty::BasisElemAttr
+#[derive(Clone, Copy)]
+pub struct BasisElemAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> BasisElemAttribute<'c> {
+    /// Creates a qwerty::BasisElemAttr from a qwerty::BasisVectorListAttr.
+    pub fn from_veclist(
+        context: &'c Context,
+        veclist: BasisVectorListAttribute<'c>,
+    ) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBasisElemAttrGetFromVeclist(
+                context.to_raw(),
+                veclist.to_raw(),
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    BasisElemAttribute,
+    is_qwerty_basis_elem,
+    "qwerty basis element"
+);
+
+/// qwerty::BasisAttr
+#[derive(Clone, Copy)]
+pub struct BasisAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> BasisAttribute<'c> {
+    /// Creates a qwerty::BasisAttr.
+    pub fn new(
+        context: &'c Context,
+        elems: &[BasisElemAttribute<'c>],
+    ) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBasisAttrGet(
+                context.to_raw(),
+                elems.len() as isize,
+                elems.as_ptr() as *const _ as *const _,
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    BasisAttribute,
+    is_qwerty_basis_vector_list,
+    "qwerty basis"
+);
+
 from_subtypes!(
     Attribute,
     SuperposAttribute,
     SuperposElemAttribute,
-    BasisVectorAttribute
+    BasisVectorAttribute,
+    BasisVectorListAttribute,
+    BasisElemAttribute,
+    BasisAttribute,
 );
 
 // Ops
