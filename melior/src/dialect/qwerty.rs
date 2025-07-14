@@ -322,6 +322,19 @@ pub fn r#return<'c>(operands: &[Value<'c, '_>], location: Location<'c>) -> Opera
         .expect("valid operation")
 }
 
+/// Create a `qwerty.call_indirect` operation.
+pub fn call_indirect<'c>(
+    callee: Value<'c, '_>,
+    operands: &[Value<'c, '_>],
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.call_indirect", location)
+        .add_operands(&[callee])
+        .add_operands(operands)
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.bitpack` operation.
 pub fn bitpack<'c>(bits: &[Value<'c, '_>], location: Location<'c>) -> Operation<'c> {
     OperationBuilder::new("qwerty.bitpack", location)
