@@ -7,6 +7,7 @@ mod handle;
 pub mod index;
 pub mod llvm;
 pub mod memref;
+pub mod qcirc;
 pub mod qwerty;
 mod registry;
 pub mod scf;
