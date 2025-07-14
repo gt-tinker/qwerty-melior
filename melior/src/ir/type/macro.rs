@@ -1,7 +1,8 @@
+#[macro_export]
 macro_rules! type_traits {
     ($name: ident, $is_type: ident, $string: expr) => {
         impl<'c> $name<'c> {
-            unsafe fn from_raw(raw: MlirType) -> Self {
+            pub unsafe fn from_raw(raw: MlirType) -> Self {
                 Self {
                     r#type: Type::from_raw(raw),
                 }

@@ -72,6 +72,16 @@ impl<'c> FunctionType<'c> {
     pub fn result_count(&self) -> usize {
         unsafe { mlirFunctionTypeGetNumResults(self.r#type.to_raw()) as usize }
     }
+
+    /// Returns input types.
+    pub fn inputs(&self) -> Vec<Type<'c>> {
+        (0..self.input_count()).map(|i| self.input(i).unwrap()).collect()
+    }
+
+    /// Returns result types.
+    pub fn results(&self) -> Vec<Type<'c>> {
+        (0..self.result_count()).map(|i| self.result(i).unwrap()).collect()
+    }
 }
 
 type_traits!(FunctionType, is_function, "function");
