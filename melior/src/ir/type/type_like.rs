@@ -59,6 +59,9 @@ pub trait TypeLike<'c> {
         mlirTypeIsAUnrankedMemRef,
         mlirTypeIsAUnrankedTensor,
         mlirTypeIsAVector,
+        mlirTypeIsAQwertyFunction,
+        mlirTypeIsAQwertyBitBundle,
+        mlirTypeIsAQwertyQBundle,
         // spell-checker: enable
     );
 }

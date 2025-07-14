@@ -7,10 +7,12 @@ use crate::{
         r#type::{self, TypeLike},
         Attribute, Identifier, Location, Operation, Region, Type, Value,
     },
-    Context,
+    type_traits, Context, Error,
 };
-use qwerty_mlir_sys::{mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet, MlirType};
-use std::fmt;
+use qwerty_mlir_sys::{
+    mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet, mlirQwertyFunctionTypeGetFunctionType,
+    mlirQwertyQBundleTypeGet, MlirType,
+};
 
 // Types
 
@@ -37,19 +39,17 @@ impl<'c> FunctionType<'c> {
             },
         }
     }
-}
 
-impl<'c> TypeLike<'c> for FunctionType<'c> {
-    fn to_raw(&self) -> MlirType {
-        self.r#type.to_raw()
+    pub fn get_function_type(&self) -> r#type::FunctionType<'c> {
+        unsafe {
+            r#type::FunctionType::from_raw(mlirQwertyFunctionTypeGetFunctionType(
+                self.r#type.to_raw(),
+            ))
+        }
     }
 }
 
-impl<'c> fmt::Display for FunctionType<'c> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&self.r#type, formatter)
-    }
-}
+type_traits!(FunctionType, is_qwerty_function, "qwerty function");
 
 /// qwerty::BitBundleType. Corresponds to a register of bits, bit[n].
 #[derive(Clone, Copy, Debug)]
@@ -59,28 +59,33 @@ pub struct BitBundleType<'c> {
 
 impl<'c> BitBundleType<'c> {
     /// Creates a bit bundle type.
-    pub fn new(context: &'c Context, dim: usize) -> Self {
+    pub fn new(context: &'c Context, dim: u64) -> Self {
         Self {
-            r#type: unsafe {
-                Type::from_raw(mlirQwertyBitBundleTypeGet(context.to_raw(), dim as u64))
-            },
+            r#type: unsafe { Type::from_raw(mlirQwertyBitBundleTypeGet(context.to_raw(), dim)) },
         }
     }
 }
 
-impl<'c> TypeLike<'c> for BitBundleType<'c> {
-    fn to_raw(&self) -> MlirType {
-        self.r#type.to_raw()
+type_traits!(BitBundleType, is_qwerty_bit_bundle, "qwerty bit bundle");
+
+/// qwerty::QBundleType. Corresponds to a register of qubits, qbundle[n].
+#[derive(Clone, Copy, Debug)]
+pub struct QBundleType<'c> {
+    r#type: Type<'c>,
+}
+
+impl<'c> QBundleType<'c> {
+    /// Creates a bit bundle type.
+    pub fn new(context: &'c Context, dim: u64) -> Self {
+        Self {
+            r#type: unsafe { Type::from_raw(mlirQwertyQBundleTypeGet(context.to_raw(), dim)) },
+        }
     }
 }
 
-impl<'c> fmt::Display for BitBundleType<'c> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&self.r#type, formatter)
-    }
-}
+type_traits!(QBundleType, is_qwerty_q_bundle, "qwerty qubit bundle");
 
-from_subtypes!(Type, FunctionType, BitBundleType);
+from_subtypes!(Type, FunctionType, BitBundleType, QBundleType);
 
 // Ops
 
