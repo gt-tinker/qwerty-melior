@@ -1,28 +1,34 @@
 //! `qwerty` dialect.
 
 use crate::{
+    attribute_traits,
     ir::{
-        attribute::{IntegerAttribute, StringAttribute, TypeAttribute},
+        attribute::AttributeLike,
+        attribute::{FloatAttribute, IntegerAttribute, StringAttribute, TypeAttribute},
         operation::OperationBuilder,
         r#type::{self, IntegerType, TypeLike},
         Attribute, Identifier, Location, Operation, Region, Type, Value,
     },
     type_traits, Context, Error,
 };
+use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet, mlirQwertyFunctionTypeGetFunctionType,
-    mlirQwertyQBundleTypeGet, MlirType,
+    mlirQwertyBasisVectorAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
+    mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
+    mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
 };
 
 // Enums
 
 /// Corresponds to qwerty::EigenstateAttr.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Eigenstate {
     Plus,
     Minus,
 }
 
 /// Corresponds to qwerty::PrimitiveBasisAttr.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PrimitiveBasis {
     X,
     Y,
@@ -102,6 +108,104 @@ impl<'c> QBundleType<'c> {
 type_traits!(QBundleType, is_qwerty_q_bundle, "qwerty qubit bundle");
 
 from_subtypes!(Type, FunctionType, BitBundleType, QBundleType);
+
+// Attributes
+
+/// qwerty::SuperposAttr
+#[derive(Clone, Copy)]
+pub struct SuperposAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> SuperposAttribute<'c> {
+    /// Creates a qwerty::SuperposAttr.
+    pub fn new(context: &'c Context, values: &[SuperposElemAttribute<'c>]) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertySuperposAttrGet(
+                context.to_raw(),
+                values.len() as isize,
+                values.as_ptr() as *const _ as *const _,
+            ))
+        }
+    }
+}
+
+attribute_traits!(SuperposAttribute, is_qwerty_superpos, "qwerty superpos");
+
+/// qwerty::SuperposElemAttr
+#[derive(Clone, Copy)]
+pub struct SuperposElemAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> SuperposElemAttribute<'c> {
+    /// Creates a qwerty::SuperposElemAttr.
+    pub fn new(
+        context: &'c Context,
+        prob: FloatAttribute<'c>,
+        phase: FloatAttribute<'c>,
+        vectors: &[BasisVectorAttribute<'c>],
+    ) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertySuperposElemAttrGet(
+                context.to_raw(),
+                prob.to_raw(),
+                phase.to_raw(),
+                vectors.len() as isize,
+                vectors.as_ptr() as *const _ as *const _,
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    SuperposElemAttribute,
+    is_qwerty_superpos_elem,
+    "qwerty superpos element"
+);
+
+/// qwerty::BasisVectorAttr
+#[derive(Clone, Copy)]
+pub struct BasisVectorAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> BasisVectorAttribute<'c> {
+    /// Creates a qwerty::BasisVectorAttr.
+    pub fn new(
+        context: &'c Context,
+        prim_basis: PrimitiveBasis,
+        eigenbits: UBig,
+        dim: u64,
+        has_phase: bool,
+    ) -> Self {
+        let chunks = eigenbits.as_words();
+
+        unsafe {
+            Self::from_raw(mlirQwertyBasisVectorAttrGet(
+                context.to_raw(),
+                prim_basis as i64,
+                dim,
+                has_phase,
+                chunks.len() as isize,
+                chunks.as_ptr() as *const _ as *const _,
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    BasisVectorAttribute,
+    is_qwerty_basis_vector,
+    "qwerty basis vector"
+);
+
+from_subtypes!(
+    Attribute,
+    SuperposAttribute,
+    SuperposElemAttribute,
+    BasisVectorAttribute
+);
 
 // Ops
 
@@ -195,6 +299,19 @@ pub fn qbphase<'c>(
 ) -> Operation<'c> {
     OperationBuilder::new("qwerty.qbphase", location)
         .add_operands(&[theta, qbundle_in])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.superpos` operation.
+pub fn superpos<'c>(
+    context: &'c Context,
+    sup: SuperposAttribute<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.superpos", location)
+        .add_attributes(&[(Identifier::new(context, "superpos"), sup.into())])
         .enable_result_type_inference()
         .build()
         .expect("valid operation")

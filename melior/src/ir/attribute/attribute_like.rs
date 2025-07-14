@@ -60,5 +60,8 @@ pub trait AttributeLike<'c> {
         mlirAttributeIsASymbolRef,
         mlirAttributeIsAType,
         mlirAttributeIsAUnit,
+        mlirAttributeIsAQwertySuperpos,
+        mlirAttributeIsAQwertySuperposElem,
+        mlirAttributeIsAQwertyBasisVector,
     );
 }

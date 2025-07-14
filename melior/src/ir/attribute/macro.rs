@@ -1,3 +1,4 @@
+#[macro_export]
 macro_rules! attribute_traits {
     ($name: ident, $is_type: ident, $string: expr) => {
         impl<'c> $name<'c> {
