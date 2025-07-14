@@ -75,12 +75,16 @@ impl<'c> FunctionType<'c> {
 
     /// Returns input types.
     pub fn inputs(&self) -> Vec<Type<'c>> {
-        (0..self.input_count()).map(|i| self.input(i).unwrap()).collect()
+        (0..self.input_count())
+            .map(|i| self.input(i).unwrap())
+            .collect()
     }
 
     /// Returns result types.
     pub fn results(&self) -> Vec<Type<'c>> {
-        (0..self.result_count()).map(|i| self.result(i).unwrap()).collect()
+        (0..self.result_count())
+            .map(|i| self.result(i).unwrap())
+            .collect()
     }
 }
 

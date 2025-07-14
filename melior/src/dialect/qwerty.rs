@@ -126,6 +126,19 @@ pub fn bitpack<'c>(bits: &[Value<'c, '_>], location: Location<'c>) -> Operation<
         .expect("valid operation")
 }
 
+/// Create a `qwerty.bitpack` operation.
+pub fn qbphase<'c>(
+    theta: Value<'c, '_>,
+    qbundle_in: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbphase", location)
+        .add_operands(&[theta, qbundle_in])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
