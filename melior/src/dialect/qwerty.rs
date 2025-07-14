@@ -13,10 +13,10 @@ use crate::{
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyBasisAttrGet, mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisVectorAttrGet,
-    mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
-    mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
-    mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
+    mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromVeclist,
+    mlirQwertyBasisVectorAttrGet, mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet,
+    mlirQwertyFunctionTypeGet, mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet,
+    mlirQwertySuperposAttrGet, mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
 };
 
 // Enums
@@ -169,8 +169,8 @@ attribute_traits!(
 /// UBig's as_words() _almost_ gives that constructor exactly what it wants.
 /// However, if the UBig is 0, then it returns an empty array (instead of an
 /// array containing one zero entry), angering LLVM.
-fn ubig_to_apint_bigvals(ubig: &UBig) -> Vec<u64> {
-    let mut chunks = eigenbits.as_words().to_vec();
+fn ubig_to_llvm_apint_bigvals(ubig: &UBig) -> Vec<u64> {
+    let mut chunks = ubig.as_words().to_vec();
     if chunks.is_empty() {
         chunks.push(0u64);
     }
@@ -192,7 +192,7 @@ impl<'c> BasisVectorAttribute<'c> {
         dim: u64,
         has_phase: bool,
     ) -> Self {
-        let chunks = ubig_to_llvm_apint_bigvals(ubig);
+        let chunks = ubig_to_llvm_apint_bigvals(&eigenbits);
         unsafe {
             Self::from_raw(mlirQwertyBasisVectorAttrGet(
                 context.to_raw(),
@@ -277,6 +277,11 @@ impl<'c> BasisAttribute<'c> {
                 elems.as_ptr() as *const _ as *const _,
             ))
         }
+    }
+
+    /// Returns the dimension of this basis.
+    pub fn get_dim(&self) -> u64 {
+        unsafe { mlirQwertyBasisAttrGetDim(self.to_raw()) }
     }
 }
 
@@ -384,6 +389,21 @@ pub fn qbprep<'c>(
             ),
             (Identifier::new(context, "dim"), dim.into()),
         ])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.qbmeas` operation.
+pub fn qbmeas<'c>(
+    context: &'c Context,
+    basis: BasisAttribute<'c>,
+    qbundle: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbmeas", location)
+        .add_attributes(&[(Identifier::new(context, "basis"), basis.into())])
+        .add_operands(&[qbundle])
         .enable_result_type_inference()
         .build()
         .expect("valid operation")
