@@ -327,6 +327,21 @@ pub fn r#return<'c>(operands: &[Value<'c, '_>], location: Location<'c>) -> Opera
         .expect("valid operation")
 }
 
+/// Create a `qwerty.lambda` operation.
+pub fn lambda<'c>(
+    captures: &[Value<'c, '_>],
+    ty: FunctionType<'c>,
+    region: Region<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.lambda", location)
+        .add_operands(captures)
+        .add_results(&[ty.into()])
+        .add_regions([region])
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.call_indirect` operation.
 pub fn call_indirect<'c>(
     callee: Value<'c, '_>,
