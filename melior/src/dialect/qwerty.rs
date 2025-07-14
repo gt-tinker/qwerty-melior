@@ -14,9 +14,10 @@ use crate::{
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
     mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromVeclist,
-    mlirQwertyBasisVectorAttrGet, mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet,
-    mlirQwertyFunctionTypeGet, mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet,
-    mlirQwertySuperposAttrGet, mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
+    mlirQwertyBasisVectorAttrGet, mlirQwertyBasisVectorAttrGetHasPhase,
+    mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
+    mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
+    mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
 };
 
 // Enums
@@ -204,6 +205,11 @@ impl<'c> BasisVectorAttribute<'c> {
             ))
         }
     }
+
+    /// Returns true iff this vector has a corresponding phase
+    pub fn has_phase(&self) -> bool {
+        unsafe { mlirQwertyBasisVectorAttrGetHasPhase(self.to_raw()) }
+    }
 }
 
 attribute_traits!(
@@ -351,6 +357,7 @@ pub fn call_indirect<'c>(
     OperationBuilder::new("qwerty.call_indirect", location)
         .add_operands(&[callee])
         .add_operands(operands)
+        .enable_result_type_inference()
         .build()
         .expect("valid operation")
 }
