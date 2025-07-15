@@ -8,7 +8,7 @@ mod context;
 pub mod diagnostic;
 pub mod dialect;
 mod error;
-mod execution_engine;
+pub mod execution_engine;
 #[cfg(feature = "helpers")]
 pub mod helpers;
 pub mod ir;
