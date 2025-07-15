@@ -457,6 +457,18 @@ pub fn superpos<'c>(
         .expect("valid operation")
 }
 
+// Passes
+
+melior_macro::passes!(
+    "Qwerty",
+    [
+        mlirCreateQwertyInlinePred,
+        mlirCreateQwertyLiftLambdas,
+        mlirCreateQwertyOnlyPredOnes,
+        mlirCreateQwertyQwertyToQCircConversion,
+    ]
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;

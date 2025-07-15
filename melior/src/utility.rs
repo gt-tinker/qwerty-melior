@@ -6,13 +6,19 @@ use crate::{
 };
 use qwerty_mlir_sys::{
     mlirParsePassPipeline, mlirRegisterAllDialects, mlirRegisterAllLLVMTranslations,
-    mlirRegisterAllPasses, MlirStringRef,
+    mlirRegisterAllPasses, mlirRegisterInlinerExtensions, MlirStringRef,
 };
 use std::{
     ffi::c_void,
     fmt::{self, Formatter},
     sync::Once,
 };
+
+/// Registers inliner extensions for the func and llvm dialects. This avoids an
+/// error when running the inliner pass.
+pub fn register_inliner_extensions(registry: &DialectRegistry) {
+    unsafe { mlirRegisterInlinerExtensions(registry.to_raw()) }
+}
 
 /// Registers all dialects to a dialect registry.
 pub fn register_all_dialects(registry: &DialectRegistry) {

@@ -1,13 +1,28 @@
 use crate::{ir::Module, logical_result::LogicalResult, string_ref::StringRef, Error};
+use bitflags::bitflags;
 use qwerty_mlir_sys::{
     mlirExecutionEngineCreate, mlirExecutionEngineDestroy, mlirExecutionEngineDumpToObjectFile,
     mlirExecutionEngineInvokePacked, mlirExecutionEngineLookup, mlirExecutionEngineRegisterSymbol,
-    MlirExecutionEngine,
+    mlirExecutionEngineRegisterSymbols, MlirExecutionEngine, MlirSymbolMapEntry,
 };
 
 /// An execution engine.
 pub struct ExecutionEngine {
     raw: MlirExecutionEngine,
+}
+
+bitflags! {
+    /// Corresponds to llvm::JITSymbolFlags.
+    pub struct SymbolFlags: u8 {
+        const NONE = 0;
+        const HAS_ERROR = 1u8 << 0;
+        const WEAK = 1u8 << 1;
+        const COMMON = 1u8 << 2;
+        const ABSOLUTE = 1u8 << 3;
+        const EXPORTED = 1u8 << 4;
+        const CALLABLE = 1u8 << 5;
+        const MATERIALIZATION_SIDE_EFFECTS_ONLY = 1u8 << 6;
+    }
 }
 
 impl ExecutionEngine {
@@ -71,6 +86,24 @@ impl ExecutionEngine {
     /// result in undefined behavior.
     pub unsafe fn register_symbol(&self, name: &str, ptr: *mut ()) {
         mlirExecutionEngineRegisterSymbol(self.raw, StringRef::new(name).to_raw(), ptr as _);
+    }
+
+    /// Similar to register_symbol() except registers many symbols at once, and
+    /// the flags for each may be set.
+    pub unsafe fn register_symbols(&self, symbols: &[(&str, *mut (), SymbolFlags)]) {
+        let symbol_structs: Vec<_> = symbols
+            .iter()
+            .map(|(name, addr, flags)| MlirSymbolMapEntry {
+                symbolName: StringRef::new(name).to_raw(),
+                addr: *addr as _,
+                jitSymbolFlags: flags.bits() as u8,
+            })
+            .collect();
+        mlirExecutionEngineRegisterSymbols(
+            self.raw,
+            symbol_structs.len() as isize,
+            symbol_structs.as_ptr() as *const _ as *const _ as *const _,
+        );
     }
 
     /// Dumps a module to an object file.
