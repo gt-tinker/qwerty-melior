@@ -416,6 +416,27 @@ pub fn qbprep<'c>(
         .expect("valid operation")
 }
 
+/// Create a `qwerty.qbtrans` operation.
+pub fn qbtrans<'c>(
+    context: &'c Context,
+    basis_in: BasisAttribute<'c>,
+    basis_out: BasisAttribute<'c>,
+    phases: &[Value<'c, '_>],
+    qbundle: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbtrans", location)
+        .add_attributes(&[
+            (Identifier::new(context, "basisIn"), basis_in.into()),
+            (Identifier::new(context, "basisOut"), basis_out.into()),
+        ])
+        .add_operands(phases)
+        .add_operands(&[qbundle])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.qbmeas` operation.
 pub fn qbmeas<'c>(
     context: &'c Context,
