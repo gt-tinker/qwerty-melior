@@ -371,6 +371,15 @@ pub fn bitpack<'c>(bits: &[Value<'c, '_>], location: Location<'c>) -> Operation<
         .expect("valid operation")
 }
 
+/// Create a `qwerty.bitunpack` operation.
+pub fn bitunpack<'c>(bundle: Value<'c, '_>, location: Location<'c>) -> Operation<'c> {
+    OperationBuilder::new("qwerty.bitunpack", location)
+        .add_operands(&[bundle])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.qbpack` operation.
 pub fn qbpack<'c>(qubits: &[Value<'c, '_>], location: Location<'c>) -> Operation<'c> {
     OperationBuilder::new("qwerty.qbpack", location)
