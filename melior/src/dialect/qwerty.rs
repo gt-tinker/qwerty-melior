@@ -425,6 +425,17 @@ pub fn qbprep<'c>(
         .expect("valid operation")
 }
 
+/// Create a `qwerty.qbdiscard` operation.
+pub fn qbdiscard<'c>(
+    qbundle: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.qbdiscard", location)
+        .add_operands(&[qbundle])
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.qbtrans` operation.
 pub fn qbtrans<'c>(
     context: &'c Context,
