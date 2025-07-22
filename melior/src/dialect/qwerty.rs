@@ -4,7 +4,10 @@ use crate::{
     attribute_traits,
     ir::{
         attribute::AttributeLike,
-        attribute::{FloatAttribute, IntegerAttribute, StringAttribute, TypeAttribute},
+        attribute::{
+            FlatSymbolRefAttribute, FloatAttribute, IntegerAttribute, StringAttribute,
+            TypeAttribute,
+        },
         operation::OperationBuilder,
         r#type::{self, IntegerType, TypeLike},
         Attribute, Identifier, Location, Operation, Region, Type, Value,
@@ -333,17 +336,18 @@ pub fn r#return<'c>(operands: &[Value<'c, '_>], location: Location<'c>) -> Opera
         .expect("valid operation")
 }
 
-/// Create a `qwerty.lambda` operation.
-pub fn lambda<'c>(
+/// Create a `qwerty.func_const` operation.
+pub fn func_const<'c>(
+    context: &'c Context,
+    func: FlatSymbolRefAttribute<'c>,
     captures: &[Value<'c, '_>],
-    ty: FunctionType<'c>,
-    region: Region<'c>,
+    r#type: FunctionType<'c>,
     location: Location<'c>,
 ) -> Operation<'c> {
-    OperationBuilder::new("qwerty.lambda", location)
+    OperationBuilder::new("qwerty.func_const", location)
+        .add_attributes(&[(Identifier::new(context, "func"), func.into())])
         .add_operands(captures)
-        .add_results(&[ty.into()])
-        .add_regions([region])
+        .add_results(&[r#type.into()])
         .build()
         .expect("valid operation")
 }
@@ -358,6 +362,21 @@ pub fn call_indirect<'c>(
         .add_operands(&[callee])
         .add_operands(operands)
         .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.lambda` operation.
+pub fn lambda<'c>(
+    captures: &[Value<'c, '_>],
+    ty: FunctionType<'c>,
+    region: Region<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.lambda", location)
+        .add_operands(captures)
+        .add_results(&[ty.into()])
+        .add_regions([region])
         .build()
         .expect("valid operation")
 }
@@ -426,10 +445,7 @@ pub fn qbprep<'c>(
 }
 
 /// Create a `qwerty.qbdiscard` operation.
-pub fn qbdiscard<'c>(
-    qbundle: Value<'c, '_>,
-    location: Location<'c>,
-) -> Operation<'c> {
+pub fn qbdiscard<'c>(qbundle: Value<'c, '_>, location: Location<'c>) -> Operation<'c> {
     OperationBuilder::new("qwerty.qbdiscard", location)
         .add_operands(&[qbundle])
         .build()
