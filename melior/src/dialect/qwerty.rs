@@ -16,9 +16,10 @@ use crate::{
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromVeclist,
-    mlirQwertyBasisVectorAttrGet, mlirQwertyBasisVectorAttrGetHasPhase,
-    mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyFunctionTypeGet,
+    mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromStd,
+    mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisVectorAttrGet,
+    mlirQwertyBasisVectorAttrGetHasPhase, mlirQwertyBasisVectorListAttrGet,
+    mlirQwertyBitBundleTypeGet, mlirQwertyBuiltinBasisAttrGet, mlirQwertyFunctionTypeGet,
     mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
     mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
 };
@@ -170,6 +171,31 @@ attribute_traits!(
     "qwerty superpos element"
 );
 
+/// qwerty::BuiltinBasisAttr
+#[derive(Clone, Copy)]
+pub struct BuiltinBasisAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> BuiltinBasisAttribute<'c> {
+    /// Creates a qwerty::BuiltinBasisAttr.
+    pub fn new(context: &'c Context, prim_basis: PrimitiveBasis, dim: u64) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBuiltinBasisAttrGet(
+                context.to_raw(),
+                prim_basis as i64,
+                dim,
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    BuiltinBasisAttribute,
+    is_qwerty_builtin_basis,
+    "qwerty built-in basis"
+);
+
 /// Convert a UBig into a form suitable for llvm::APInt's "bigVal" constructor.
 /// UBig's as_words() _almost_ gives that constructor exactly what it wants.
 /// However, if the UBig is 0, then it returns an empty array (instead of an
@@ -260,6 +286,16 @@ impl<'c> BasisElemAttribute<'c> {
             Self::from_raw(mlirQwertyBasisElemAttrGetFromVeclist(
                 context.to_raw(),
                 veclist.to_raw(),
+            ))
+        }
+    }
+
+    /// Creates a qwerty::BasisElemAttr from a qwerty::BuiltinBasis.
+    pub fn from_std(context: &'c Context, std: BuiltinBasisAttribute<'c>) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBasisElemAttrGetFromStd(
+                context.to_raw(),
+                std.to_raw(),
             ))
         }
     }
