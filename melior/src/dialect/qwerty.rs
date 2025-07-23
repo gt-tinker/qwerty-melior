@@ -39,6 +39,7 @@ pub enum PrimitiveBasis {
     Y,
     Z,
     Fourier,
+    Bell,
 }
 
 // Types
