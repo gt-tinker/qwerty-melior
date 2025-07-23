@@ -78,7 +78,7 @@ impl<'c> FunctionType<'c> {
 
 type_traits!(FunctionType, is_qwerty_function, "qwerty function");
 
-/// qwerty::BitBundleType. Corresponds to a register of bits, bit[n].
+/// qwerty::BitBundleType. Corresponds to a register of bits, `bit[n]`.
 #[derive(Clone, Copy, Debug)]
 pub struct BitBundleType<'c> {
     r#type: Type<'c>,
@@ -95,7 +95,7 @@ impl<'c> BitBundleType<'c> {
 
 type_traits!(BitBundleType, is_qwerty_bit_bundle, "qwerty bit bundle");
 
-/// qwerty::QBundleType. Corresponds to a register of qubits, qbundle[n].
+/// qwerty::QBundleType. Corresponds to a register of qubits, `qbundle[n]`.
 #[derive(Clone, Copy, Debug)]
 pub struct QBundleType<'c> {
     r#type: Type<'c>,
