@@ -8,7 +8,7 @@ pub mod transform;
 
 pub use self::{
     external::{create_external, ExternalPass, RunExternalPass},
-    manager::PassManager,
+    manager::{PassManager, PassIrPrintingOptions},
     operation_manager::OperationPassManager,
 };
 use qwerty_mlir_sys::MlirPass;
