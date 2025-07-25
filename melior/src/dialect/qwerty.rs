@@ -389,6 +389,33 @@ pub fn func_const<'c>(
         .expect("valid operation")
 }
 
+/// Create a `qwerty.func_adj` operation.
+pub fn func_adj<'c>(
+    callee: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.func_adj", location)
+        .add_operands(&[callee])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.func_pred` operation.
+pub fn func_pred<'c>(
+    context: &'c Context,
+    pred: BasisAttribute<'c>,
+    callee: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.func_pred", location)
+        .add_attributes(&[(Identifier::new(context, "pred"), pred.into())])
+        .add_operands(&[callee])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.call_indirect` operation.
 pub fn call_indirect<'c>(
     callee: Value<'c, '_>,
