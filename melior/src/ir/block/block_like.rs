@@ -41,6 +41,11 @@ pub trait BlockLike<'c, 'a>: Display + 'a {
         unsafe { mlirBlockGetNumArguments(self.to_raw()) as usize }
     }
 
+    /// Returns all arguments.
+    fn arguments(&self) -> impl Iterator<Item = BlockArgument<'c, 'a>> {
+        (0..self.argument_count()).map(|index| self.argument(index).expect("valid argument index"))
+    }
+
     /// Returns a reference to the first operation.
     fn first_operation(&self) -> Option<OperationRef<'c, 'a>> {
         unsafe { OperationRef::from_option_raw(mlirBlockGetFirstOperation(self.to_raw())) }
