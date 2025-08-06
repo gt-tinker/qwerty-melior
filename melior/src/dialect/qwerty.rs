@@ -10,6 +10,7 @@ use crate::{
         },
         operation::OperationBuilder,
         r#type::{self, IntegerType, TypeLike},
+        symbol_table::Visibility,
         Attribute, Identifier, Location, Operation, Region, Type, Value,
     },
     type_traits, Context, Error,
@@ -350,8 +351,8 @@ pub fn func<'c>(
     context: &'c Context,
     name: StringAttribute<'c>,
     func_ty: TypeAttribute<'c>,
+    sym_visibility: Visibility,
     region: Region<'c>,
-    attributes: &[(Identifier<'c>, Attribute<'c>)],
     location: Location<'c>,
 ) -> Operation<'c> {
     OperationBuilder::new("qwerty.func", location)
@@ -359,7 +360,7 @@ pub fn func<'c>(
             (Identifier::new(context, "sym_name"), name.into()),
             (Identifier::new(context, "qwerty_func_type"), func_ty.into()),
         ])
-        .add_attributes(attributes)
+        .add_attributes(&sym_visibility.to_attribute_list(context))
         .add_regions([region])
         .build()
         .expect("valid operation")
@@ -390,10 +391,7 @@ pub fn func_const<'c>(
 }
 
 /// Create a `qwerty.func_adj` operation.
-pub fn func_adj<'c>(
-    callee: Value<'c, '_>,
-    location: Location<'c>,
-) -> Operation<'c> {
+pub fn func_adj<'c>(callee: Value<'c, '_>, location: Location<'c>) -> Operation<'c> {
     OperationBuilder::new("qwerty.func_adj", location)
         .add_operands(&[callee])
         .enable_result_type_inference()
@@ -630,8 +628,8 @@ mod tests {
             TypeAttribute::new(
                 FunctionType::new(context, function_type, /*reversible=*/ false).into(),
             ),
+            Visibility::Public,
             region,
-            &[],
             Location::unknown(context),
         );
 
@@ -669,8 +667,8 @@ mod tests {
                     )
                     .into(),
                 ),
+                Visibility::Public,
                 region,
-                &[],
                 Location::unknown(&context),
             )
         };

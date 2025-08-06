@@ -8,6 +8,7 @@ mod location;
 mod module;
 pub mod operation;
 mod region;
+pub mod symbol_table;
 pub mod r#type;
 mod value;
 
