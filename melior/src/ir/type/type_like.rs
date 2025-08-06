@@ -59,6 +59,7 @@ pub trait TypeLike<'c> {
         mlirTypeIsAUnrankedMemRef,
         mlirTypeIsAUnrankedTensor,
         mlirTypeIsAVector,
+        mlirTypeIsACCircWire,
         mlirTypeIsAQwertyFunction,
         mlirTypeIsAQwertyBitBundle,
         mlirTypeIsAQwertyQBundle,

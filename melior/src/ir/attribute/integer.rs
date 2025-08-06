@@ -1,11 +1,13 @@
 use super::{Attribute, AttributeLike};
 use crate::{
     ir::{Type, TypeLike},
-    Error,
+    utility::ubig_to_llvm_apint_bigvals,
+    Context, Error,
 };
+use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirIntegerAttrGet, mlirIntegerAttrGetValueInt, mlirIntegerAttrGetValueSInt,
-    mlirIntegerAttrGetValueUInt, MlirAttribute,
+    mlirIntegerAttrBigIntGet, mlirIntegerAttrGet, mlirIntegerAttrGetValueInt,
+    mlirIntegerAttrGetValueSInt, mlirIntegerAttrGetValueUInt, MlirAttribute,
 };
 
 /// An integer attribute.
@@ -18,6 +20,19 @@ impl<'c> IntegerAttribute<'c> {
     /// Creates an integer attribute.
     pub fn new(r#type: Type<'c>, integer: i64) -> Self {
         unsafe { Self::from_raw(mlirIntegerAttrGet(r#type.to_raw(), integer)) }
+    }
+
+    /// Creates an integer attribute from a bigint.
+    pub fn from_ubig(context: &'c Context, bit_width: u64, val: &UBig) -> Self {
+        let val_chunks = ubig_to_llvm_apint_bigvals(val);
+        unsafe {
+            Self::from_raw(mlirIntegerAttrBigIntGet(
+                context.to_raw(),
+                bit_width,
+                val_chunks.len() as isize,
+                val_chunks.as_ptr() as *const _ as *const _,
+            ))
+        }
     }
 
     /// Returns a value.

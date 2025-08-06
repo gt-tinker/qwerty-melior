@@ -4,6 +4,7 @@ use crate::{
     context::Context, dialect::DialectRegistry, logical_result::LogicalResult, pass,
     string_ref::StringRef, Error,
 };
+use dashu::integer::UBig;
 use qwerty_mlir_sys::{
     mlirParsePassPipeline, mlirRegisterAllDialects, mlirRegisterAllLLVMTranslations,
     mlirRegisterAllPasses, mlirRegisterInlinerExtensions, MlirStringRef,
@@ -58,6 +59,18 @@ pub fn parse_pass_pipeline(manager: pass::OperationPassManager, source: &str) ->
             || "failed to parse error message in UTF-8".into(),
         )))
     }
+}
+
+/// Convert a UBig into a form suitable for llvm::APInt's "bigVal" constructor.
+/// UBig's as_words() _almost_ gives that constructor exactly what it wants.
+/// However, if the UBig is 0, then it returns an empty array (instead of an
+/// array containing one zero entry), angering LLVM.
+pub(crate) fn ubig_to_llvm_apint_bigvals(ubig: &UBig) -> Vec<u64> {
+    let mut chunks = ubig.as_words().to_vec();
+    if chunks.is_empty() {
+        chunks.push(0u64);
+    }
+    chunks
 }
 
 unsafe extern "C" fn handle_parse_error(raw_string: MlirStringRef, data: *mut c_void) {
