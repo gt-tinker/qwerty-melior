@@ -13,7 +13,9 @@ use crate::{
         symbol_table::Visibility,
         Attribute, Identifier, Location, Operation, Region, Type, Value,
     },
-    type_traits, Context, Error,
+    type_traits,
+    utility::ubig_to_llvm_apint_bigvals,
+    Context, Error,
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
@@ -196,18 +198,6 @@ attribute_traits!(
     is_qwerty_builtin_basis,
     "qwerty built-in basis"
 );
-
-/// Convert a UBig into a form suitable for llvm::APInt's "bigVal" constructor.
-/// UBig's as_words() _almost_ gives that constructor exactly what it wants.
-/// However, if the UBig is 0, then it returns an empty array (instead of an
-/// array containing one zero entry), angering LLVM.
-fn ubig_to_llvm_apint_bigvals(ubig: &UBig) -> Vec<u64> {
-    let mut chunks = ubig.as_words().to_vec();
-    if chunks.is_empty() {
-        chunks.push(0u64);
-    }
-    chunks
-}
 
 /// qwerty::BasisVectorAttr
 #[derive(Clone, Copy)]

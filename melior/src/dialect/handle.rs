@@ -2,10 +2,10 @@ use super::DialectRegistry;
 use crate::{context::Context, dialect::Dialect, string_ref::StringRef};
 use qwerty_mlir_sys::{
     mlirDialectHandleGetNamespace, mlirDialectHandleInsertDialect, mlirDialectHandleLoadDialect,
-    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__arith__, mlirGetDialectHandle__cf__,
-    mlirGetDialectHandle__func__, mlirGetDialectHandle__llvm__, mlirGetDialectHandle__math__,
-    mlirGetDialectHandle__qcirc__, mlirGetDialectHandle__qwerty__, mlirGetDialectHandle__scf__,
-    MlirDialectHandle,
+    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__arith__, mlirGetDialectHandle__ccirc__,
+    mlirGetDialectHandle__cf__, mlirGetDialectHandle__func__, mlirGetDialectHandle__llvm__,
+    mlirGetDialectHandle__math__, mlirGetDialectHandle__qcirc__, mlirGetDialectHandle__qwerty__,
+    mlirGetDialectHandle__scf__, MlirDialectHandle,
 };
 
 /// A dialect handle.
@@ -18,6 +18,11 @@ impl DialectHandle {
     /// Creates a `cf` dialect handle.
     pub fn cf() -> Self {
         unsafe { Self::from_raw(mlirGetDialectHandle__cf__()) }
+    }
+
+    /// Creates a `ccirc` dialect handle.
+    pub fn ccirc() -> Self {
+        unsafe { Self::from_raw(mlirGetDialectHandle__ccirc__()) }
     }
 
     /// Creates a `func` dialect handle.
