@@ -566,12 +566,55 @@ pub fn superpos<'c>(
         .expect("valid operation")
 }
 
+/// Create a `qwerty.embed_xor` operation.
+pub fn embed_xor<'c>(
+    context: &'c Context,
+    circuit: FlatSymbolRefAttribute<'c>,
+    r#type: FunctionType<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.embed_xor", location)
+        .add_attributes(&[(Identifier::new(context, "circuit"), circuit.into())])
+        .add_results(&[r#type.into()])
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.embed_sign` operation.
+pub fn embed_sign<'c>(
+    context: &'c Context,
+    circuit: FlatSymbolRefAttribute<'c>,
+    r#type: FunctionType<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.embed_sign", location)
+        .add_attributes(&[(Identifier::new(context, "circuit"), circuit.into())])
+        .add_results(&[r#type.into()])
+        .build()
+        .expect("valid operation")
+}
+
+/// Create a `qwerty.embed_inplace` operation.
+pub fn embed_inplace<'c>(
+    context: &'c Context,
+    circuit: FlatSymbolRefAttribute<'c>,
+    r#type: FunctionType<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.embed_inplace", location)
+        .add_attributes(&[(Identifier::new(context, "circuit"), circuit.into())])
+        .add_results(&[r#type.into()])
+        .build()
+        .expect("valid operation")
+}
+
 // Passes
 
 melior_macro::passes!(
     "Qwerty",
     [
         mlirCreateQwertyInlinePred,
+        mlirCreateQwertySynthEmbeds,
         mlirCreateQwertyLiftLambdas,
         mlirCreateQwertyOnlyPredOnes,
         mlirCreateQwertyQwertyToQCircConversion,
