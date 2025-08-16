@@ -566,6 +566,19 @@ pub fn superpos<'c>(
         .expect("valid operation")
 }
 
+/// Create a `qwerty.ensemble` operation.
+pub fn ensemble<'c>(
+    context: &'c Context,
+    sup: SuperposAttribute<'c>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("qwerty.ensemble", location)
+        .add_attributes(&[(Identifier::new(context, "superpos"), sup.into())])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `qwerty.embed_xor` operation.
 pub fn embed_xor<'c>(
     context: &'c Context,
