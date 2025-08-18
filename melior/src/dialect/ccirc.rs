@@ -112,6 +112,27 @@ pub fn not<'c>(operand: Value<'c, '_>, location: Location<'c>) -> Operation<'c> 
         .expect("valid operation")
 }
 
+/// Create a `ccirc.modmul` operation.
+pub fn modmul<'c>(
+    context: &'c Context,
+    x: IntegerAttribute<'c>,
+    j: IntegerAttribute<'c>,
+    mod_n: IntegerAttribute<'c>,
+    y: Value<'c, '_>,
+    location: Location<'c>,
+) -> Operation<'c> {
+    OperationBuilder::new("ccirc.modmul", location)
+        .add_attributes(&[
+            (Identifier::new(context, "x"), x.into()),
+            (Identifier::new(context, "j"), j.into()),
+            (Identifier::new(context, "modN"), mod_n.into()),
+        ])
+        .add_operands(&[y])
+        .enable_result_type_inference()
+        .build()
+        .expect("valid operation")
+}
+
 /// Create a `ccirc.wirepack` operation.
 pub fn wirepack<'c>(wires: &[Value<'c, '_>], location: Location<'c>) -> Operation<'c> {
     OperationBuilder::new("ccirc.wirepack", location)
