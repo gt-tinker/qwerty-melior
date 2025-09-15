@@ -20,8 +20,8 @@ quote = "1"
 regex = "1.11.2"
 syn = { version = "2", features = ["full"] }
 tblgen = { version = "0.6.0", features = [
-  "llvm20-0",
-], default-features = false }
+  "llvm21-0",
+], default-features = false, path = "../../tblgen-rs" }
 unindent = "0.2.4"
 
 [dev-dependencies]
