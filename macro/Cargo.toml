@@ -26,5 +26,5 @@ unindent = "0.2.4"
 
 [dev-dependencies]
 melior = { path = "../melior", features = ["ods-dialects"] }
-qwerty-mlir-sys = { version = "0.5.0", path = "../../qwerty_mlir_sys" }
+qwerty-mlir-sys = { version = "210.0.0", path = "../../qwerty_mlir_sys" }
 pretty_assertions = "1.4.1"
