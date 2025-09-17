@@ -21,7 +21,7 @@ regex = "1.11.2"
 syn = { version = "2", features = ["full"] }
 tblgen = { version = "0.6.0", features = [
   "llvm21-0",
-], default-features = false, path = "../../tblgen-rs" }
+], default-features = false, path = "../../tblgen_rs" }
 unindent = "0.2.4"
 
 [dev-dependencies]
