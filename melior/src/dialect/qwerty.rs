@@ -199,6 +199,40 @@ attribute_traits!(
     "qwerty built-in basis"
 );
 
+/// qwerty::ApplyRevolveGeneratorAttribute
+#[derive(Clone, Copy)]
+pub struct ApplyRevolveGeneratorAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> ApplyRevolveGeneratorAttribute<'c> {
+    /// Creates a qwerty::ApplyRevolveGeneratorAttribute
+    /// of the form foo // {bv1, bv2}.revolve
+    pub fn new(
+        context: &'c Context,
+        // basisattr, two basisvectorattr
+        foo: BasisAttribute<'c>,
+        bv1: BasisVectorAttribute<'c>,
+        bv2: BasisVectorAttribute<'c>,
+    ) -> Self {
+        unsafe {
+            // need mlirQwertyApplyRevolveGeneratorAttrGet
+            Self::from_raw(mlirQwertyBasisElemAttrGetFromRevolve(
+                context.to_raw(),
+                foo.to_raw(),
+                bv1.to_raw(),
+                bv2.to_raw(),
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    ApplyRevolveGeneratorAttribute,
+    is_qwerty_apply_revolve_gen,
+    "qwerty apply revolve generator"
+);
+
 /// qwerty::BasisVectorAttr
 #[derive(Clone, Copy)]
 pub struct BasisVectorAttribute<'c> {
@@ -283,6 +317,15 @@ impl<'c> BasisElemAttribute<'c> {
 
     /// Creates a qwerty::BasisElemAttr from a qwerty::BuiltinBasis.
     pub fn from_std(context: &'c Context, std: BuiltinBasisAttribute<'c>) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBasisElemAttrGetFromStd(
+                context.to_raw(),
+                std.to_raw(),
+            ))
+        }
+    }
+
+    pub fn from_revolve(context: &'c Context, revolve: BuiltinBasisAttribute<'c>) -> Self {
         unsafe {
             Self::from_raw(mlirQwertyBasisElemAttrGetFromStd(
                 context.to_raw(),
