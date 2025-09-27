@@ -2,6 +2,7 @@
 
 use crate::{
     attribute_traits,
+    attribute_traits_no_try_from,
     ir::{
         attribute::AttributeLike,
         attribute::{
@@ -19,7 +20,8 @@ use crate::{
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromStd,
+    mlirQwertyApplyRevolveGeneratorAttrGet, mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim,
+    mlirQwertyBasisElemAttrGetFromRevolve, mlirQwertyBasisElemAttrGetFromStd,
     mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisVectorAttrGet,
     mlirQwertyBasisVectorAttrGetHasPhase, mlirQwertyBasisVectorListAttrGet,
     mlirQwertyBitBundleTypeGet, mlirQwertyBuiltinBasisAttrGet, mlirQwertyFunctionTypeGet,
@@ -199,7 +201,7 @@ attribute_traits!(
     "qwerty built-in basis"
 );
 
-/// qwerty::ApplyRevolveGeneratorAttribute
+/// qwerty::ApplyRevolveGeneratorAttr
 #[derive(Clone, Copy)]
 pub struct ApplyRevolveGeneratorAttribute<'c> {
     attribute: Attribute<'c>,
@@ -216,8 +218,7 @@ impl<'c> ApplyRevolveGeneratorAttribute<'c> {
         bv2: BasisVectorAttribute<'c>,
     ) -> Self {
         unsafe {
-            // need mlirQwertyApplyRevolveGeneratorAttrGet
-            Self::from_raw(mlirQwertyBasisElemAttrGetFromRevolve(
+            Self::from_raw(mlirQwertyApplyRevolveGeneratorAttrGet(
                 context.to_raw(),
                 foo.to_raw(),
                 bv1.to_raw(),
@@ -229,7 +230,7 @@ impl<'c> ApplyRevolveGeneratorAttribute<'c> {
 
 attribute_traits!(
     ApplyRevolveGeneratorAttribute,
-    is_qwerty_apply_revolve_gen,
+    is_qwerty_apply_revolve_generator,
     "qwerty apply revolve generator"
 );
 
@@ -325,11 +326,11 @@ impl<'c> BasisElemAttribute<'c> {
         }
     }
 
-    pub fn from_revolve(context: &'c Context, revolve: BuiltinBasisAttribute<'c>) -> Self {
+    pub fn from_revolve(context: &'c Context, revolve: ApplyRevolveGeneratorAttribute<'c>) -> Self {
         unsafe {
-            Self::from_raw(mlirQwertyBasisElemAttrGetFromStd(
+            Self::from_raw(mlirQwertyBasisElemAttrGetFromRevolve(
                 context.to_raw(),
-                std.to_raw(),
+                revolve.to_raw(),
             ))
         }
     }
@@ -371,6 +372,7 @@ from_subtypes!(
     Attribute,
     SuperposAttribute,
     SuperposElemAttribute,
+    ApplyRevolveGeneratorAttribute,
     BasisVectorAttribute,
     BasisVectorListAttribute,
     BasisElemAttribute,
