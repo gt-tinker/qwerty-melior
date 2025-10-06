@@ -32,6 +32,7 @@ melior_macro::passes!(
     [
         mlirCreateQCircDecomposeMultiControl,
         mlirCreateQCircReplaceUnusualGates,
+        mlirCreateQCircBarencoDecompose,
         mlirCreateQCircPeepholeOptimization,
         mlirCreateQCircInlineAdj,
         mlirCreateQCircBaseProfileModulePrep,
