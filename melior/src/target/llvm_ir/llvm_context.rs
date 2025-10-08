@@ -22,3 +22,6 @@ impl Drop for LLVMContext {
         unsafe { LLVMContextDispose(self.raw) };
     }
 }
+
+unsafe impl Send for LLVMContext {}
+unsafe impl Sync for LLVMContext {}

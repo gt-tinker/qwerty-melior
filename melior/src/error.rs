@@ -30,6 +30,7 @@ pub enum Error {
     RunPass,
     TypeExpected(&'static str, String),
     UnknownDiagnosticSeverity(u32),
+    PrintLLVMModule(String),
     Utf8(Utf8Error),
 }
 
@@ -76,6 +77,9 @@ impl Display for Error {
             }
             Self::UnknownDiagnosticSeverity(severity) => {
                 write!(formatter, "unknown diagnostic severity: {severity}")
+            }
+            Self::PrintLLVMModule(string) => {
+                write!(formatter, "failed to print LLVM module: {string}")
             }
             Self::Utf8(error) => {
                 write!(formatter, "{error}")
