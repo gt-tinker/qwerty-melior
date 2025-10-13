@@ -1,7 +1,7 @@
 //! `qwerty` dialect.
 
 use crate::{
-    attribute_traits, attribute_traits_no_try_from,
+    attribute_traits,
     ir::{
         attribute::AttributeLike,
         attribute::{
