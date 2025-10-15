@@ -12,6 +12,8 @@ use qwerty_mlir_sys::{
 use std::{
     ffi::c_void,
     fmt::{self, Formatter},
+    fs::File,
+    io::{BufWriter, Write},
     sync::Once,
 };
 
@@ -114,6 +116,19 @@ pub(crate) unsafe extern "C" fn print_string_callback(string: MlirStringRef, dat
 
         Ok(())
     })();
+}
+
+pub(crate) unsafe extern "C" fn print_to_file_callback(string: MlirStringRef, data: *mut c_void) {
+    let (writer, result) = &mut *(data as *mut (BufWriter<File>, Result<(), Error>));
+
+    if result.is_err() {
+        return;
+    }
+
+    let string_ref = StringRef::from_raw(string);
+    *result = writer
+        .write_all(string_ref.as_bytes())
+        .map_err(Into::<Error>::into);
 }
 
 #[cfg(test)]
