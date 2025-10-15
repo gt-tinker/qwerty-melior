@@ -1,4 +1,4 @@
-use std::{ffi::c_void, fmt::Display};
+use std::{ffi::c_void, fmt::Display, fs::File, io::BufWriter, path::Path};
 
 use qwerty_mlir_sys::{
     mlirOperationDump, mlirOperationGetAttribute, mlirOperationGetAttributeByName,
@@ -16,12 +16,11 @@ use qwerty_mlir_sys::{
 
 use crate::{
     ir::{Attribute, AttributeLike, BlockRef, Identifier, Location, RegionRef, Value},
+    utility::{print_string_callback, print_to_file_callback},
     ContextRef, Error, StringRef,
 };
 
-use super::{
-    print_string_callback, OperationPrintingFlags, OperationRef, OperationRefMut, OperationResult,
-};
+use super::{OperationPrintingFlags, OperationRef, OperationRefMut, OperationResult};
 
 /// Order in which to traverse an operation tree.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -262,6 +261,29 @@ pub trait OperationLike<'c: 'a, 'a>: Display + 'a {
         data.1?;
 
         Ok(data.0)
+    }
+
+    /// Prints an operation to a file with flags.
+    fn print_to_file_with_flags<P: AsRef<Path>>(
+        &self,
+        filename: P,
+        flags: OperationPrintingFlags,
+    ) -> Result<(), Error> {
+        let writer = BufWriter::new(File::create(filename)?);
+        let mut data = (writer, Ok::<_, Error>(()));
+
+        unsafe {
+            mlirOperationPrintWithFlags(
+                self.to_raw(),
+                flags.to_raw(),
+                Some(print_to_file_callback),
+                &mut data as *mut _ as *mut _,
+            );
+        }
+
+        data.1?;
+
+        Ok(())
     }
 
     /// Walk this operation (and all nested operations) in either pre- or

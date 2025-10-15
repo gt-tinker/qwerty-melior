@@ -2,11 +2,12 @@ use std::{
     convert::Infallible,
     error,
     fmt::{self, Display, Formatter},
+    io,
     str::Utf8Error,
 };
 
 /// A Melior error.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum Error {
     AttributeExpected(&'static str, String),
     AttributeNotFound(String),
@@ -32,6 +33,7 @@ pub enum Error {
     UnknownDiagnosticSeverity(u32),
     PrintLLVMModule(String),
     Utf8(Utf8Error),
+    IO(io::Error),
 }
 
 impl Display for Error {
@@ -84,6 +86,9 @@ impl Display for Error {
             Self::Utf8(error) => {
                 write!(formatter, "{error}")
             }
+            Self::IO(error) => {
+                write!(formatter, "{error}")
+            }
         }
     }
 }
@@ -93,6 +98,12 @@ impl error::Error for Error {}
 impl From<Utf8Error> for Error {
     fn from(error: Utf8Error) -> Self {
         Self::Utf8(error)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(error: io::Error) -> Self {
+        Self::IO(error)
     }
 }
 
