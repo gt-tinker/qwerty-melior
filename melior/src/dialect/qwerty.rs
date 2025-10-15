@@ -43,7 +43,6 @@ pub enum PrimitiveBasis {
     X,
     Y,
     Z,
-    Fourier,
     Bell,
 }
 
