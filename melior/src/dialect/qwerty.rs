@@ -210,7 +210,6 @@ impl<'c> ApplyRevolveGeneratorAttribute<'c> {
     /// of the form `foo // {bv1, bv2}.revolve`
     pub fn new(
         context: &'c Context,
-        // basisattr, two basisvectorattr
         foo: BasisAttribute<'c>,
         bv1: BasisVectorAttribute<'c>,
         bv2: BasisVectorAttribute<'c>,
