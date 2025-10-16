@@ -44,7 +44,7 @@ pub enum Error {
     UnknownDiagnosticSeverity(u32),
     PrintLLVMModule(String),
     Utf8(Utf8Error),
-    IO(io::Error),
+    IO(IoError),
 }
 
 impl Display for Error {
@@ -97,7 +97,7 @@ impl Display for Error {
             Self::Utf8(error) => {
                 write!(formatter, "{error}")
             }
-            Self::IO(error) => {
+            Self::IO(IoError(error)) => {
                 write!(formatter, "{error}")
             }
         }
@@ -114,7 +114,7 @@ impl From<Utf8Error> for Error {
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
-        Self::IO(error)
+        Self::IO(IoError(error))
     }
 }
 
