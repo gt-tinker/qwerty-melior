@@ -19,7 +19,8 @@ use crate::{
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromStd,
+    mlirQwertyApplyRevolveGeneratorAttrGet, mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim,
+    mlirQwertyBasisElemAttrGetFromRevolve, mlirQwertyBasisElemAttrGetFromStd,
     mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisVectorAttrGet,
     mlirQwertyBasisVectorAttrGetHasPhase, mlirQwertyBasisVectorListAttrGet,
     mlirQwertyBitBundleTypeGet, mlirQwertyBuiltinBasisAttrGet, mlirQwertyFunctionTypeGet,
@@ -42,7 +43,6 @@ pub enum PrimitiveBasis {
     X,
     Y,
     Z,
-    Fourier,
     Bell,
 }
 
@@ -199,6 +199,38 @@ attribute_traits!(
     "qwerty built-in basis"
 );
 
+/// qwerty::ApplyRevolveGeneratorAttr
+#[derive(Clone, Copy)]
+pub struct ApplyRevolveGeneratorAttribute<'c> {
+    attribute: Attribute<'c>,
+}
+
+impl<'c> ApplyRevolveGeneratorAttribute<'c> {
+    /// Creates a qwerty::ApplyRevolveGeneratorAttribute
+    /// of the form `foo // {bv1, bv2}.revolve`
+    pub fn new(
+        context: &'c Context,
+        foo: BasisAttribute<'c>,
+        bv1: BasisVectorAttribute<'c>,
+        bv2: BasisVectorAttribute<'c>,
+    ) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyApplyRevolveGeneratorAttrGet(
+                context.to_raw(),
+                foo.to_raw(),
+                bv1.to_raw(),
+                bv2.to_raw(),
+            ))
+        }
+    }
+}
+
+attribute_traits!(
+    ApplyRevolveGeneratorAttribute,
+    is_qwerty_apply_revolve_generator,
+    "qwerty apply revolve generator"
+);
+
 /// qwerty::BasisVectorAttr
 #[derive(Clone, Copy)]
 pub struct BasisVectorAttribute<'c> {
@@ -290,6 +322,15 @@ impl<'c> BasisElemAttribute<'c> {
             ))
         }
     }
+
+    pub fn from_revolve(context: &'c Context, revolve: ApplyRevolveGeneratorAttribute<'c>) -> Self {
+        unsafe {
+            Self::from_raw(mlirQwertyBasisElemAttrGetFromRevolve(
+                context.to_raw(),
+                revolve.to_raw(),
+            ))
+        }
+    }
 }
 
 attribute_traits!(
@@ -328,6 +369,7 @@ from_subtypes!(
     Attribute,
     SuperposAttribute,
     SuperposElemAttribute,
+    ApplyRevolveGeneratorAttribute,
     BasisVectorAttribute,
     BasisVectorListAttribute,
     BasisElemAttribute,

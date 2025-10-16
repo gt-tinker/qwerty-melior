@@ -60,6 +60,7 @@ pub trait AttributeLike<'c> {
         mlirAttributeIsASymbolRef,
         mlirAttributeIsAType,
         mlirAttributeIsAUnit,
+        mlirAttributeIsAQwertyApplyRevolveGenerator,
         mlirAttributeIsAQwertySuperpos,
         mlirAttributeIsAQwertySuperposElem,
         mlirAttributeIsAQwertyBuiltinBasis,

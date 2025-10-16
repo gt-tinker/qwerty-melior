@@ -11,11 +11,7 @@ pub use self::{
     printing_flags::OperationPrintingFlags,
     result::OperationResult,
 };
-use crate::{
-    context::Context,
-    utility::{print_callback, print_string_callback},
-    Error,
-};
+use crate::{context::Context, utility::print_callback, Error};
 use core::{
     fmt,
     mem::{forget, transmute},

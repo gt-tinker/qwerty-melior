@@ -177,10 +177,12 @@ melior_macro::dialect! {
     files: ["mlir/Dialect/Tensor/IR/TensorOps.td"],
 }
 
+/* TODO: Fix "invalid ODS input: code storageType = ?" probably tblgen issue?
 melior_macro::dialect! {
     name: "tosa",
     files: ["mlir/Dialect/Tosa/IR/TosaOps.td"],
 }
+*/
 
 melior_macro::dialect! {
     name: "transform",
