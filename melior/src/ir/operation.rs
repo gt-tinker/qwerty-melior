@@ -179,6 +179,12 @@ impl<'c, 'a> OperationRef<'c, 'a> {
     }
 }
 
+impl<'c, 'a> From<&'a Operation<'c>> for OperationRef<'c, 'a> {
+    fn from(op: &'a Operation<'c>) -> Self {
+        unsafe { OperationRef::from_raw(op.raw) }
+    }
+}
+
 impl<'c, 'a> OperationLike<'c, 'a> for OperationRef<'c, 'a> {
     fn to_raw(&self) -> MlirOperation {
         self.raw

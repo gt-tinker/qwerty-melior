@@ -7,7 +7,8 @@ use crate::{
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
     mlirParsePassPipeline, mlirRegisterAllDialects, mlirRegisterAllLLVMTranslations,
-    mlirRegisterAllPasses, mlirRegisterInlinerExtensions, MlirStringRef,
+    mlirRegisterAllPasses, mlirRegisterInlinerExtensions, mlirRegisterLLVMIRTranslations,
+    MlirStringRef,
 };
 use std::{
     ffi::c_void,
@@ -21,6 +22,12 @@ use std::{
 /// error when running the inliner pass.
 pub fn register_inliner_extensions(registry: &DialectRegistry) {
     unsafe { mlirRegisterInlinerExtensions(registry.to_raw()) }
+}
+
+/// Registers translations to LLVM IR. This avoids errors when translating to
+/// LLVM IR.
+pub fn register_llvm_ir_translations(registry: &DialectRegistry) {
+    unsafe { mlirRegisterLLVMIRTranslations(registry.to_raw()) }
 }
 
 /// Registers all dialects to a dialect registry.

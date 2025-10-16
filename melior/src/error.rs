@@ -6,6 +6,17 @@ use std::{
     str::Utf8Error,
 };
 
+/// A `newtype` for [`io::Error`] that implements [`Eq`].
+#[derive(Debug)]
+pub struct IoError(pub io::Error);
+
+impl PartialEq for IoError {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.kind() == other.0.kind()
+    }
+}
+impl Eq for IoError {}
+
 /// A Melior error.
 #[derive(Debug)]
 pub enum Error {
@@ -31,6 +42,7 @@ pub enum Error {
     RunPass,
     TypeExpected(&'static str, String),
     UnknownDiagnosticSeverity(u32),
+    PrintLLVMModule(String),
     Utf8(Utf8Error),
     IO(io::Error),
 }
@@ -78,6 +90,9 @@ impl Display for Error {
             }
             Self::UnknownDiagnosticSeverity(severity) => {
                 write!(formatter, "unknown diagnostic severity: {severity}")
+            }
+            Self::PrintLLVMModule(string) => {
+                write!(formatter, "failed to print LLVM module: {string}")
             }
             Self::Utf8(error) => {
                 write!(formatter, "{error}")

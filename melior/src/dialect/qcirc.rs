@@ -1,6 +1,12 @@
 //! `qcirc` dialect.
 
-use crate::ir::{operation::OperationBuilder, Location, Operation, Region, Type, Value};
+use crate::{
+    ir::{operation::OperationBuilder, Location, Operation, OperationRef, Region, Type, Value},
+    logical_result::LogicalResult,
+};
+use qwerty_mlir_sys::{mlirQCircGenerateQasm, mlirQCircGenerateQasmDestroyBuf};
+use std::ffi::CStr;
+use std::os::raw::c_char;
 
 // Ops
 
@@ -31,8 +37,8 @@ melior_macro::passes!(
     "QCirc",
     [
         mlirCreateQCircDecomposeMultiControl,
-        mlirCreateQCircReplaceNonQIRGates,
-        mlirCreateQCircReplaceNonQasmGates,
+        mlirCreateQCircReplaceUnusualGates,
+        mlirCreateQCircBarencoDecompose,
         mlirCreateQCircPeepholeOptimization,
         mlirCreateQCircInlineAdj,
         mlirCreateQCircBaseProfileModulePrep,
@@ -40,3 +46,31 @@ melior_macro::passes!(
         mlirCreateQCircQCircToQIRConversion,
     ]
 );
+
+// Utilities
+
+pub fn generate_qasm<'c>(func_op: OperationRef<'_, 'c>, print_locs: bool) -> Option<String> {
+    unsafe {
+        let mut buf_ptr: *mut c_char = std::ptr::null_mut();
+        let res = LogicalResult::from_raw(mlirQCircGenerateQasm(
+            func_op.to_raw(),
+            print_locs,
+            &mut buf_ptr,
+        ));
+
+        let ret = if res.is_failure() {
+            None
+        } else {
+            Some(
+                CStr::from_ptr(buf_ptr)
+                    .to_str()
+                    .expect("QASM is invalid UTF-8")
+                    .to_string(),
+            )
+        };
+
+        mlirQCircGenerateQasmDestroyBuf(buf_ptr);
+
+        ret
+    }
+}
