@@ -177,10 +177,12 @@ melior_macro::dialect! {
     files: ["mlir/Dialect/Tensor/IR/TensorOps.td"],
 }
 
+/*
 melior_macro::dialect! {
     name: "tosa",
     files: ["mlir/Dialect/Tosa/IR/TosaOps.td"],
 }
+*/
 
 melior_macro::dialect! {
     name: "transform",

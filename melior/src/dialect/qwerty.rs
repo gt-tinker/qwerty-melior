@@ -207,7 +207,7 @@ pub struct ApplyRevolveGeneratorAttribute<'c> {
 
 impl<'c> ApplyRevolveGeneratorAttribute<'c> {
     /// Creates a qwerty::ApplyRevolveGeneratorAttribute
-    /// of the form foo // {bv1, bv2}.revolve
+    /// of the form `foo // {bv1, bv2}.revolve`
     pub fn new(
         context: &'c Context,
         // basisattr, two basisvectorattr

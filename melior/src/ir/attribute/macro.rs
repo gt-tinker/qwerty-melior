@@ -43,7 +43,6 @@ macro_rules! attribute_traits {
     };
 }
 
-#[macro_export]
 macro_rules! attribute_traits_no_try_from {
     ($name: ident) => {
         impl<'c> $name<'c> {
