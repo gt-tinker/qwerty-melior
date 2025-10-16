@@ -6,8 +6,24 @@ use std::{
     str::Utf8Error,
 };
 
-/// A Melior error.
+/// A `newtype` for [`io::Error`] that implements [`Eq`].
 #[derive(Debug)]
+pub struct IoError(pub io::Error);
+
+impl PartialEq for IoError {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.kind() == other.0.kind()
+    }
+}
+impl Eq for IoError {}
+impl Display for IoError {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        write!(formatter, "{}", self.0)
+    }
+}
+
+/// A Melior error.
+#[derive(Debug, Eq, PartialEq)]
 pub enum Error {
     AttributeExpected(&'static str, String),
     AttributeNotFound(String),
@@ -33,7 +49,7 @@ pub enum Error {
     UnknownDiagnosticSeverity(u32),
     PrintLLVMModule(String),
     Utf8(Utf8Error),
-    IO(io::Error),
+    IO(IoError),
 }
 
 impl Display for Error {
@@ -103,7 +119,7 @@ impl From<Utf8Error> for Error {
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
-        Self::IO(error)
+        Self::IO(IoError(error))
     }
 }
 
