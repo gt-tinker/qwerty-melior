@@ -18,7 +18,7 @@ impl PartialEq for IoError {
 impl Eq for IoError {}
 
 /// A Melior error.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Error {
     AttributeExpected(&'static str, String),
     AttributeNotFound(String),
