@@ -16,11 +16,6 @@ impl PartialEq for IoError {
     }
 }
 impl Eq for IoError {}
-impl Display for IoError {
-    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
-        write!(formatter, "{}", self.0)
-    }
-}
 
 /// A Melior error.
 #[derive(Debug, Eq, PartialEq)]
@@ -102,7 +97,7 @@ impl Display for Error {
             Self::Utf8(error) => {
                 write!(formatter, "{error}")
             }
-            Self::IO(error) => {
+            Self::IO(IoError(error)) => {
                 write!(formatter, "{error}")
             }
         }
