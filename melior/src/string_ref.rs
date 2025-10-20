@@ -36,14 +36,16 @@ impl<'a> StringRef<'a> {
 
     /// Converts a string reference into a `str`.
     pub fn as_str(&self) -> Result<&'a str, Utf8Error> {
-        unsafe {
-            let bytes = slice::from_raw_parts(self.raw.data as *mut u8, self.raw.length);
+        str::from_utf8(self.as_bytes())
+    }
 
-            str::from_utf8(if bytes[bytes.len() - 1] == 0 {
-                &bytes[..bytes.len() - 1]
-            } else {
-                bytes
-            })
+    pub fn as_bytes(&self) -> &'a [u8] {
+        let bytes = unsafe { slice::from_raw_parts(self.raw.data as *mut u8, self.raw.length) };
+        // Remove null terminator if present
+        if bytes[bytes.len() - 1] == 0 {
+            &bytes[..bytes.len() - 1]
+        } else {
+            bytes
         }
     }
 

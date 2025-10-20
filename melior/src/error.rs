@@ -2,8 +2,20 @@ use std::{
     convert::Infallible,
     error,
     fmt::{self, Display, Formatter},
+    io,
     str::Utf8Error,
 };
+
+/// A `newtype` for [`io::Error`] that implements [`Eq`].
+#[derive(Debug)]
+pub struct IoError(pub io::Error);
+
+impl PartialEq for IoError {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.kind() == other.0.kind()
+    }
+}
+impl Eq for IoError {}
 
 /// A Melior error.
 #[derive(Debug, Eq, PartialEq)]
@@ -32,6 +44,7 @@ pub enum Error {
     UnknownDiagnosticSeverity(u32),
     PrintLLVMModule(String),
     Utf8(Utf8Error),
+    IO(IoError),
 }
 
 impl Display for Error {
@@ -84,6 +97,9 @@ impl Display for Error {
             Self::Utf8(error) => {
                 write!(formatter, "{error}")
             }
+            Self::IO(IoError(error)) => {
+                write!(formatter, "{error}")
+            }
         }
     }
 }
@@ -93,6 +109,12 @@ impl error::Error for Error {}
 impl From<Utf8Error> for Error {
     fn from(error: Utf8Error) -> Self {
         Self::Utf8(error)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(error: io::Error) -> Self {
+        Self::IO(IoError(error))
     }
 }
 
