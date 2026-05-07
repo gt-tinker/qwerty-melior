@@ -60,6 +60,7 @@ pub fn generate_operation(operation: &Operation) -> TokenStream {
         #[doc = #summary]
         #[doc = "\n\n"]
         #[doc = #description]
+        #[derive(Clone, Debug, PartialEq, Eq)]
         pub struct #identifier<'c> {
             operation: ::melior::ir::operation::Operation<'c>,
         }
@@ -94,8 +95,18 @@ pub fn generate_operation(operation: &Operation) -> TokenStream {
             fn try_from(
                 operation: ::melior::ir::operation::Operation<'c>,
                 ) -> Result<Self, Self::Error> {
-                // TODO Check an operation name.
-                Ok(Self { operation })
+                let expected = #operation_name;
+                let name = operation.name();
+
+                if name.as_string_ref().as_str() == Ok(expected) {
+                    Ok(Self { operation })
+                } else {
+                    Err(::melior::Error::OperationExpected {
+                        expected,
+                        actual: name.as_string_ref().as_str()
+                            .unwrap_or("<non-utf8>").to_owned(),
+                    })
+                }
             }
         }
 

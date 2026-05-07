@@ -1,30 +1,29 @@
 [package]
 name = "melior-macro"
+version = "0.20.0"
+edition.workspace = true
 description = "Internal macros for Melior"
-version = "0.18.0"
-edition = "2021"
-license = "Apache-2.0"
-repository = "https://github.com/mlir-rs/melior"
 documentation = "https://mlir-rs.github.io/melior/melior/"
-readme = "../README.md"
-keywords = ["mlir", "llvm"]
+readme.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
 
 [lib]
 proc-macro = true
 
 [dependencies]
-comrak = { version = "0.41.1", default-features = false }
-convert_case = "0.8.0"
+comrak = { version = "0.52.0", default-features = false }
+convert_case = "0.11.0"
 proc-macro2 = "1"
 quote = "1"
-regex = "1.11.2"
+regex = "1.12.3"
 syn = { version = "2", features = ["full"] }
-tblgen = { version = "0.6.0", features = [
-  "llvm21-0",
-], default-features = false, path = "../../tblgen_rs" }
+tblgen = { version = "0.9.1", default-features = false, features = ["llvm22-0"] }
 unindent = "0.2.4"
 
 [dev-dependencies]
 melior = { path = "../melior", features = ["ods-dialects"] }
-qwerty-mlir-sys = { version = "210.0.0", path = "../../qwerty_mlir_sys" }
+qwerty-mlir-sys = { version = "220.0.2", path = "../../qwerty_mlir_sys" }
 pretty_assertions = "1.4.1"
+trybuild = { version = "1.0.108", features = ["diff"] }

@@ -24,7 +24,9 @@ impl<'l> LLVMModule<'l> {
         if raw.is_null() {
             None
         } else {
-            Some(Self::from_raw(raw))
+            unsafe {
+                Some(Self::from_raw(raw))
+            }
         }
     }
 

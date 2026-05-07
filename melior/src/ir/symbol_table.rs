@@ -31,7 +31,9 @@ impl<'c> SymbolTable<'c> {
         if raw.ptr.is_null() {
             None
         } else {
-            Some(Self::from_raw(raw))
+            unsafe {
+                Some(Self::from_raw(raw))
+            }
         }
     }
 

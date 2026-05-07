@@ -12,6 +12,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         llvm_config("--includedir", &version_variable)?
     );
 
+    // For testing
+    println!("cargo:rustc-env=ENV_VAR_FOR_MLIR_DIALECT_DIR=foo/bar/baz");
+
     Ok(())
 }
 
@@ -23,7 +26,7 @@ fn llvm_config(
         .map(|path| Path::new(&path).join("bin"))
         .unwrap_or_default();
     let call = format!(
-        "{} --link-static {}",
+        "{} --link-static --ignore-libllvm {}",
         prefix.join("llvm-config").display(),
         argument
     );

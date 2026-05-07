@@ -3,7 +3,7 @@
 mod allocator;
 
 pub use allocator::Allocator;
-use qwerty_mlir_sys::{mlirTypeIDCreate, mlirTypeIDEqual, mlirTypeIDHashValue, MlirTypeID};
+use qwerty_mlir_sys::{MlirTypeID, mlirTypeIDCreate, mlirTypeIDEqual, mlirTypeIDHashValue};
 use std::{
     hash::{Hash, Hasher},
     marker::PhantomData,
@@ -83,8 +83,8 @@ mod tests {
     #[test]
     #[should_panic]
     fn reject_invalid_alignment() {
-        static VALUES: [u8; 2] = [1u8; 2];
+        let values: (u32, u8) = Default::default();
 
-        TypeId::create(&VALUES[1]);
+        TypeId::create(&values.1);
     }
 }

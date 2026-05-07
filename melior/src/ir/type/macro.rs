@@ -4,7 +4,7 @@ macro_rules! type_traits {
         impl<'c> $name<'c> {
             pub unsafe fn from_raw(raw: MlirType) -> Self {
                 Self {
-                    r#type: Type::from_raw(raw),
+                    r#type: unsafe { Type::from_raw(raw) },
                 }
             }
         }

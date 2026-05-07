@@ -1,8 +1,8 @@
 use super::Attribute;
-use qwerty_mlir_sys::{mlirDisctinctAttrCreate, MlirAttribute};
+use qwerty_mlir_sys::{MlirAttribute, mlirDisctinctAttrCreate};
 
 /// A disctinct attribute.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Hash)]
 pub struct DisctinctAttribute<'c> {
     attribute: Attribute<'c>,
 }

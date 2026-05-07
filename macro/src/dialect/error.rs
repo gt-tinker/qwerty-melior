@@ -1,6 +1,8 @@
 mod ods;
 
 pub use self::ods::OdsError;
+use proc_macro::TokenStream;
+use proc_macro2::Span;
 use std::{
     error,
     fmt::{self, Display, Formatter},
@@ -8,12 +10,13 @@ use std::{
     string::FromUtf8Error,
 };
 use tblgen::{
-    error::{SourceError, TableGenError},
     SourceInfo,
+    error::{SourceError, TableGenError},
 };
 
 #[derive(Debug)]
 pub enum Error {
+    Format(fmt::Error),
     InvalidIdentifier(String),
     Io(io::Error),
     Ods(SourceError<OdsError>),
@@ -29,7 +32,26 @@ impl Error {
             Self::TableGen(error) => error.add_source_info(info).into(),
             Self::Ods(error) => error.add_source_info(info).into(),
             Self::Parse(error) => Self::Parse(error.add_source_info(info)),
-            Self::InvalidIdentifier(_) | Self::Io(_) | Self::Syn(_) | Self::Utf8(_) => self,
+            Self::Format(_)
+            | Self::InvalidIdentifier(_)
+            | Self::Io(_)
+            | Self::Syn(_)
+            | Self::Utf8(_) => self,
+        }
+    }
+
+    pub fn to_compile_error(&self) -> TokenStream {
+        match self {
+            Self::Syn(err) => err.to_compile_error().into(),
+            Self::TableGen(_)
+            | Self::Ods(_)
+            | Self::Parse(_)
+            | Self::Format(_)
+            | Self::InvalidIdentifier(_)
+            | Self::Io(_)
+            | Self::Utf8(_) => syn::Error::new(Span::call_site(), self)
+                .to_compile_error()
+                .into(),
         }
     }
 }
@@ -37,6 +59,7 @@ impl Error {
 impl Display for Error {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         match self {
+            Self::Format(error) => write!(formatter, "{error}"),
             Self::InvalidIdentifier(identifier) => {
                 write!(formatter, "invalid identifier: {identifier}")
             }
@@ -67,6 +90,12 @@ impl From<SourceError<TableGenError>> for Error {
 impl From<syn::Error> for Error {
     fn from(error: syn::Error) -> Self {
         Self::Syn(error)
+    }
+}
+
+impl From<fmt::Error> for Error {
+    fn from(error: fmt::Error) -> Self {
+        Self::Format(error)
     }
 }
 

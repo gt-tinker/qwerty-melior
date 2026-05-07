@@ -8,25 +8,27 @@ mod bool;
 mod dense_elements;
 mod dense_i32_array;
 mod dense_i64_array;
+mod dictionary;
 mod distinct;
 mod flat_symbol_ref;
 mod float;
 mod integer;
+mod strided_layout;
 mod string;
 mod r#type;
 
 pub use self::{
     array::ArrayAttribute, attribute_like::AttributeLike, bool::BoolAttribute,
     dense_elements::DenseElementsAttribute, dense_i32_array::DenseI32ArrayAttribute,
-    dense_i64_array::DenseI64ArrayAttribute, flat_symbol_ref::FlatSymbolRefAttribute,
-    float::FloatAttribute, integer::IntegerAttribute, r#type::TypeAttribute,
-    string::StringAttribute,
+    dense_i64_array::DenseI64ArrayAttribute, dictionary::DictionaryAttribute,
+    flat_symbol_ref::FlatSymbolRefAttribute, float::FloatAttribute, integer::IntegerAttribute,
+    strided_layout::StridedLayoutAttribute, string::StringAttribute, r#type::TypeAttribute,
 };
 use crate::{context::Context, string_ref::StringRef, utility::print_callback};
 use distinct::DisctinctAttribute;
 use qwerty_mlir_sys::{
-    mlirAttributeEqual, mlirAttributeGetNull, mlirAttributeParseGet, mlirAttributePrint,
-    mlirUnitAttrGet, MlirAttribute,
+    MlirAttribute, mlirAttributeEqual, mlirAttributeGetNull, mlirAttributeParseGet,
+    mlirAttributePrint, mlirUnitAttrGet,
 };
 use std::{
     ffi::c_void,
@@ -83,7 +85,7 @@ impl<'c> Attribute<'c> {
         if raw.ptr.is_null() {
             None
         } else {
-            Some(Self::from_raw(raw))
+            Some(unsafe { Self::from_raw(raw) })
         }
     }
 }
@@ -124,6 +126,13 @@ impl Debug for Attribute<'_> {
     }
 }
 
+impl std::hash::Hash for Attribute<'_> {
+    // Hashes the attribute's pointer since they are unique w.r.t. the MLIR context.
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.raw.ptr.hash(state);
+    }
+}
+
 from_subtypes!(
     Attribute,
     ArrayAttribute,
@@ -131,10 +140,12 @@ from_subtypes!(
     DenseElementsAttribute,
     DenseI32ArrayAttribute,
     DenseI64ArrayAttribute,
+    DictionaryAttribute,
     FlatSymbolRefAttribute,
     FloatAttribute,
     IntegerAttribute,
     StringAttribute,
+    StridedLayoutAttribute,
     TypeAttribute,
     DisctinctAttribute,
 );
@@ -207,36 +218,44 @@ mod tests {
     #[test]
     fn is_dense_elements() {
         let context = create_test_context();
-        assert!(Attribute::parse(&context, "dense<10> : tensor<2xi8>")
-            .unwrap()
-            .is_dense_elements());
+        assert!(
+            Attribute::parse(&context, "dense<10> : tensor<2xi8>")
+                .unwrap()
+                .is_dense_elements()
+        );
     }
 
     #[test]
     fn is_dense_int_elements() {
         let context = create_test_context();
-        assert!(Attribute::parse(&context, "dense<42> : tensor<42xi8>")
-            .unwrap()
-            .is_dense_int_elements());
+        assert!(
+            Attribute::parse(&context, "dense<42> : tensor<42xi8>")
+                .unwrap()
+                .is_dense_int_elements()
+        );
     }
 
     #[test]
     fn is_dense_fp_elements() {
         let context = create_test_context();
-        assert!(Attribute::parse(&context, "dense<42.0> : tensor<42xf32>")
-            .unwrap()
-            .is_dense_fp_elements());
+        assert!(
+            Attribute::parse(&context, "dense<42.0> : tensor<42xf32>")
+                .unwrap()
+                .is_dense_fp_elements()
+        );
     }
 
     #[test]
     fn is_elements() {
         let context = create_test_context();
-        assert!(Attribute::parse(
-            &context,
-            "sparse<[[0, 0], [1, 2]], [1, 5]> : tensor<3x4xi32>"
-        )
-        .unwrap()
-        .is_elements());
+        assert!(
+            Attribute::parse(
+                &context,
+                "sparse<[[0, 0], [1, 2]], [1, 5]> : tensor<3x4xi32>"
+            )
+            .unwrap()
+            .is_elements()
+        );
     }
 
     #[test]
@@ -260,20 +279,24 @@ mod tests {
     #[test]
     fn is_opaque() {
         let context = create_test_context();
-        assert!(Attribute::parse(&context, "#foo<\"bar\">")
-            .unwrap()
-            .is_opaque());
+        assert!(
+            Attribute::parse(&context, "#foo<\"bar\">")
+                .unwrap()
+                .is_opaque()
+        );
     }
 
     #[test]
     fn is_sparse_elements() {
         let context = create_test_context();
-        assert!(Attribute::parse(
-            &context,
-            "sparse<[[0, 0], [1, 2]], [1, 5]> : tensor<3x4xi32>"
-        )
-        .unwrap()
-        .is_sparse_elements());
+        assert!(
+            Attribute::parse(
+                &context,
+                "sparse<[[0, 0], [1, 2]], [1, 5]> : tensor<3x4xi32>"
+            )
+            .unwrap()
+            .is_sparse_elements()
+        );
     }
 
     #[test]

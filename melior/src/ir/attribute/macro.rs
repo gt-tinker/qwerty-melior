@@ -4,7 +4,7 @@ macro_rules! attribute_traits {
         impl<'c> $name<'c> {
             unsafe fn from_raw(raw: MlirAttribute) -> Self {
                 Self {
-                    attribute: Attribute::from_raw(raw),
+                    attribute: unsafe { Attribute::from_raw(raw) },
                 }
             }
         }
@@ -50,7 +50,7 @@ macro_rules! attribute_traits_no_try_from {
             #[allow(unused)]
             unsafe fn from_raw(raw: MlirAttribute) -> Self {
                 Self {
-                    attribute: Attribute::from_raw(raw),
+                    attribute: unsafe { Attribute::from_raw(raw) },
                 }
             }
         }

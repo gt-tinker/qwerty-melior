@@ -7,7 +7,7 @@ pub use self::{argument::BlockArgument, block_like::BlockLike};
 use super::{Location, Type, TypeLike, Value};
 use crate::{context::Context, utility::print_callback};
 use qwerty_mlir_sys::{
-    mlirBlockCreate, mlirBlockDestroy, mlirBlockDetach, mlirBlockEqual, mlirBlockPrint, MlirBlock,
+    MlirBlock, mlirBlockCreate, mlirBlockDestroy, mlirBlockDetach, mlirBlockEqual, mlirBlockPrint,
 };
 use std::{
     ffi::c_void,
@@ -53,9 +53,9 @@ impl<'c> Block<'c> {
     // TODO Implement this for BlockRefMut instead and mark it safe.
     pub unsafe fn detach(&self) -> Option<Block<'c>> {
         if self.parent_region().is_some() {
-            mlirBlockDetach(self.raw);
+            unsafe { mlirBlockDetach(self.raw) };
 
-            Some(Block::from_raw(self.raw))
+            Some(unsafe { Block::from_raw(self.raw) })
         } else {
             None
         }
@@ -161,7 +161,7 @@ impl BlockRef<'_, '_> {
         if raw.ptr.is_null() {
             None
         } else {
-            Some(Self::from_raw(raw))
+            Some(unsafe { Self::from_raw(raw) })
         }
     }
 }
@@ -204,13 +204,13 @@ impl Debug for BlockRef<'_, '_> {
 mod tests {
     use super::*;
     use crate::{
+        Error,
         ir::{
+            Module, Region, RegionLike, ValueLike,
             operation::{OperationBuilder, OperationLike},
             r#type::IntegerType,
-            Module, Region, RegionLike, ValueLike,
         },
         test::create_test_context,
-        Error,
     };
     use pretty_assertions::assert_eq;
 
@@ -440,6 +440,76 @@ mod tests {
         assert_eq!(
             format!("{:?}", &Block::new(&[])),
             "Block(\n<<UNLINKED BLOCK>>\n)"
+        );
+    }
+
+    #[test]
+    fn insert_argument() {
+        let context = create_test_context();
+        let location = Location::unknown(&context);
+        let i32_type = Type::from(IntegerType::new(&context, 32));
+        let i64_type = Type::from(IntegerType::new(&context, 64));
+
+        let block = Block::new(&[(i64_type, location)]);
+        let inserted = block.insert_argument(0, i32_type, location);
+
+        assert_eq!(block.argument_count(), 2);
+        assert_eq!(inserted.r#type(), i32_type);
+        assert_eq!(block.argument(0).unwrap().r#type(), i32_type);
+    }
+
+    #[test]
+    fn erase_argument() {
+        let context = create_test_context();
+        let location = Location::unknown(&context);
+        let i32_type = Type::from(IntegerType::new(&context, 32));
+        let i64_type = Type::from(IntegerType::new(&context, 64));
+
+        let block = Block::new(&[(i32_type, location), (i64_type, location)]);
+        assert_eq!(block.argument_count(), 2);
+
+        // SAFETY: No BlockArgument handles are held at this point.
+        unsafe { block.erase_argument(0) };
+
+        assert_eq!(block.argument_count(), 1);
+        assert_eq!(block.argument(0).unwrap().r#type(), i64_type);
+    }
+
+    #[test]
+    fn successor_count() {
+        let block = Block::new(&[]);
+        assert_eq!(block.successor_count(), 0);
+    }
+
+    #[test]
+    fn successor_out_of_bounds() {
+        let block = Block::new(&[]);
+        assert_eq!(
+            block.successor(0).unwrap_err(),
+            Error::PositionOutOfBounds {
+                name: "block successor",
+                value: "<<UNLINKED BLOCK>>\n".into(),
+                index: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn predecessor_count() {
+        let block = Block::new(&[]);
+        assert_eq!(block.predecessor_count(), 0);
+    }
+
+    #[test]
+    fn predecessor_out_of_bounds() {
+        let block = Block::new(&[]);
+        assert_eq!(
+            block.predecessor(0).unwrap_err(),
+            Error::PositionOutOfBounds {
+                name: "block predecessor",
+                value: "<<UNLINKED BLOCK>>\n".into(),
+                index: 0,
+            }
         );
     }
 }

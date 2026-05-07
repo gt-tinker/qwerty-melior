@@ -1,11 +1,17 @@
 use super::DialectRegistry;
 use crate::{context::Context, dialect::Dialect, string_ref::StringRef};
 use qwerty_mlir_sys::{
-    mlirDialectHandleGetNamespace, mlirDialectHandleInsertDialect, mlirDialectHandleLoadDialect,
-    mlirDialectHandleRegisterDialect, mlirGetDialectHandle__arith__, mlirGetDialectHandle__ccirc__,
-    mlirGetDialectHandle__cf__, mlirGetDialectHandle__func__, mlirGetDialectHandle__llvm__,
-    mlirGetDialectHandle__math__, mlirGetDialectHandle__qcirc__, mlirGetDialectHandle__qwerty__,
-    mlirGetDialectHandle__scf__, MlirDialectHandle,
+    MlirDialectHandle, mlirDialectHandleGetNamespace, mlirDialectHandleInsertDialect,
+    mlirDialectHandleLoadDialect, mlirDialectHandleRegisterDialect,
+    mlirGetDialectHandle__cf__, mlirGetDialectHandle__func__,
+    mlirGetDialectHandle__llvm__, 
+    mlirGetDialectHandle__scf__, 
+    mlirGetDialectHandle__ccirc__, 
+    mlirGetDialectHandle__arith__, 
+    mlirGetDialectHandle__math__, 
+    mlirGetDialectHandle__qcirc__, 
+    mlirGetDialectHandle__qwerty__, 
+    
 };
 
 /// A dialect handle.

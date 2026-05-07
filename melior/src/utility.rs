@@ -1,14 +1,13 @@
 //! Utility functions.
 
 use crate::{
-    context::Context, dialect::DialectRegistry, logical_result::LogicalResult, pass,
-    string_ref::StringRef, Error,
+    Error, context::Context, dialect::DialectRegistry, logical_result::LogicalResult,
+    pass, string_ref::StringRef,
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirParsePassPipeline, mlirRegisterAllDialects, mlirRegisterAllLLVMTranslations,
-    mlirRegisterAllPasses, mlirRegisterInlinerExtensions, mlirRegisterLLVMIRTranslations,
-    MlirStringRef,
+    MlirStringRef, mlirParsePassPipeline, mlirRegisterAllDialects,
+    mlirRegisterAllLLVMTranslations, mlirRegisterAllPasses, mlirRegisterInlinerExtensions, mlirRegisterLLVMIRTranslations,
 };
 use std::{
     ffi::c_void,
@@ -83,18 +82,20 @@ pub(crate) fn ubig_to_llvm_apint_bigvals(ubig: &UBig) -> Vec<u64> {
 }
 
 unsafe extern "C" fn handle_parse_error(raw_string: MlirStringRef, data: *mut c_void) {
-    let string = StringRef::from_raw(raw_string);
-    let data = &mut *(data as *mut Option<String>);
+    unsafe {
+        let string = StringRef::from_raw(raw_string);
+        let data = &mut *(data as *mut Option<String>);
 
-    if let Some(message) = data {
-        message.extend(string.as_str())
-    } else {
-        *data = string.as_str().map(String::from).ok();
+        if let Some(message) = data {
+            message.extend(string.as_str())
+        } else {
+            *data = string.as_str().map(String::from).ok();
+        }
     }
 }
 
 pub(crate) unsafe extern "C" fn print_callback(string: MlirStringRef, data: *mut c_void) {
-    let (formatter, result) = &mut *(data as *mut (&mut Formatter, fmt::Result));
+    let (formatter, result) = unsafe { &mut *(data as *mut (&mut Formatter, fmt::Result)) };
 
     if result.is_err() {
         return;
@@ -104,7 +105,7 @@ pub(crate) unsafe extern "C" fn print_callback(string: MlirStringRef, data: *mut
         write!(
             formatter,
             "{}",
-            StringRef::from_raw(string)
+            unsafe { StringRef::from_raw(string) }
                 .as_str()
                 .map_err(|_| fmt::Error)?
         )
@@ -112,30 +113,37 @@ pub(crate) unsafe extern "C" fn print_callback(string: MlirStringRef, data: *mut
 }
 
 pub(crate) unsafe extern "C" fn print_string_callback(string: MlirStringRef, data: *mut c_void) {
-    let (writer, result) = &mut *(data as *mut (String, Result<(), Error>));
+    let (writer, result) = unsafe { &mut *(data as *mut (String, Result<(), Error>)) };
 
     if result.is_err() {
         return;
     }
 
     *result = (|| {
-        writer.push_str(StringRef::from_raw(string).as_str()?);
+        writer.push_str(unsafe { StringRef::from_raw(string) }.as_str()?);
 
         Ok(())
     })();
 }
 
 pub(crate) unsafe extern "C" fn print_to_file_callback(string: MlirStringRef, data: *mut c_void) {
-    let (writer, result) = &mut *(data as *mut (BufWriter<File>, Result<(), Error>));
+    let (writer, result) = unsafe { &mut *(data as *mut (BufWriter<File>, Result<(), Error>)) };
 
     if result.is_err() {
         return;
     }
 
-    let string_ref = StringRef::from_raw(string);
+    let string_ref = unsafe { StringRef::from_raw(string) };
     *result = writer
         .write_all(string_ref.as_bytes())
         .map_err(Into::<Error>::into);
+}
+
+pub(crate) unsafe extern "C" fn collect_bytes_callback(string: MlirStringRef, data: *mut c_void) {
+    let bytes = unsafe { &mut *(data as *mut Vec<u8>) };
+    let slice = unsafe { std::slice::from_raw_parts(string.data as *const u8, string.length) };
+
+    bytes.extend_from_slice(slice);
 }
 
 #[cfg(test)]

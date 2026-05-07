@@ -1,14 +1,12 @@
 use proc_macro2::Ident;
 use quote::format_ident;
-use syn::{bracketed, parse::Parse, punctuated::Punctuated, LitStr, Token};
+use syn::{LitStr, Token, bracketed, parse::Parse, punctuated::Punctuated};
 
 pub enum InputField {
     Name(LitStr),
-    TableGen(LitStr),
-    TdFile(LitStr),
-    IncludeDirectories(Punctuated<LitStr, Token![,]>),
     Files(Punctuated<LitStr, Token![,]>),
     Directories(Punctuated<LitStr, Token![,]>),
+    DirectoryEnvVars(Punctuated<LitStr, Token![,]>),
 }
 
 impl Parse for InputField {
@@ -19,16 +17,6 @@ impl Parse for InputField {
 
         if ident == format_ident!("name") {
             Ok(Self::Name(input.parse()?))
-        } else if ident == format_ident!("table_gen") {
-            Ok(Self::TableGen(input.parse()?))
-        } else if ident == format_ident!("td_file") {
-            Ok(Self::TdFile(input.parse()?))
-        } else if ident == format_ident!("include_dirs") {
-            let content;
-            bracketed!(content in input);
-            Ok(Self::IncludeDirectories(
-                Punctuated::<LitStr, Token![,]>::parse_terminated(&content)?,
-            ))
         } else if ident == format_ident!("files") {
             let content;
             bracketed!(content in input);
@@ -39,6 +27,12 @@ impl Parse for InputField {
             let content;
             bracketed!(content in input);
             Ok(Self::Directories(
+                Punctuated::<LitStr, Token![,]>::parse_terminated(&content)?,
+            ))
+        } else if ident == format_ident!("include_directory_env_vars") {
+            let content;
+            bracketed!(content in input);
+            Ok(Self::DirectoryEnvVars(
                 Punctuated::<LitStr, Token![,]>::parse_terminated(&content)?,
             ))
         } else {

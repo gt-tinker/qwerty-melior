@@ -13,13 +13,11 @@ melior_macro::dialect! {
     include_directories: ["mlir/Dialect/Affine"],
 }
 
-/* TODO: Fix "error: invalid conversion from Invalid to alloc::string::String" probably tblgen issue?
 melior_macro::dialect! {
     name: "amdgpu",
     files: ["IR/AMDGPU.td", "Transforms/Passes.td"],
     include_directories: ["mlir/Dialect/AMDGPU"],
 }
-*/
 
 melior_macro::dialect! {
     name: "arith",
@@ -203,16 +201,15 @@ melior_macro::dialect! {
 mod tests {
     use super::*;
     use crate::{
-        dialect,
+        Context, dialect,
         ir::{
+            Block, BlockLike, Location, Module, Region, RegionLike, Type,
             attribute::{IntegerAttribute, StringAttribute, TypeAttribute},
             operation::OperationLike,
             r#type::{FunctionType, IntegerType},
-            Block, BlockLike, Location, Module, Region, RegionLike, Type,
         },
         pass::{self, PassManager},
         test::create_test_context,
-        Context,
     };
 
     fn convert_module<'c>(context: &'c Context, module: &mut Module<'c>) {
@@ -274,17 +271,44 @@ mod tests {
     }
 
     #[test]
-    fn compile_arith_addf() {
+    fn compile_float_arithmetics() {
         let context = create_test_context();
         let location = Location::unknown(&context);
         let r#type = Type::float32(&context);
 
         test_operation("addf", &context, &[r#type, r#type], |block| {
-            block.append_operation(
+            let add = block.append_operation(
                 arith::addf(
                     &context,
                     block.argument(0).unwrap().into(),
                     block.argument(1).unwrap().into(),
+                    location,
+                )
+                .into(),
+            );
+            let sub = block.append_operation(
+                arith::subf(
+                    &context,
+                    add.result(0).unwrap().into(),
+                    block.argument(1).unwrap().into(),
+                    location,
+                )
+                .into(),
+            );
+            let mul = block.append_operation(
+                arith::mulf(
+                    &context,
+                    add.result(0).unwrap().into(),
+                    sub.result(0).unwrap().into(),
+                    location,
+                )
+                .into(),
+            );
+            block.append_operation(
+                arith::divf(
+                    &context,
+                    mul.result(0).unwrap().into(),
+                    sub.result(0).unwrap().into(),
                     location,
                 )
                 .into(),

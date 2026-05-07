@@ -1,8 +1,6 @@
 use super::TypeId;
 use crate::{context::ContextRef, dialect::Dialect};
-use qwerty_mlir_sys::{
-    mlirTypeDump, mlirTypeGetContext, mlirTypeGetDialect, mlirTypeGetTypeID, MlirType,
-};
+use qwerty_mlir_sys::{MlirType, mlirTypeDump, mlirTypeGetContext, mlirTypeGetDialect, mlirTypeGetTypeID};
 
 /// A trait for type-like types.
 pub trait TypeLike<'c> {
@@ -37,12 +35,17 @@ pub trait TypeLike<'c> {
         mlirTypeIsAF32,
         mlirTypeIsAF64,
         mlirTypeIsAFloat,
+        mlirTypeIsAFloat4E2M1FN,
+        mlirTypeIsAFloat6E2M3FN,
+        mlirTypeIsAFloat6E3M2FN,
+        mlirTypeIsAFloat8E3M4,
         mlirTypeIsAFloat8E4M3,
         mlirTypeIsAFloat8E4M3B11FNUZ,
         mlirTypeIsAFloat8E4M3FN,
         mlirTypeIsAFloat8E4M3FNUZ,
         mlirTypeIsAFloat8E5M2,
         mlirTypeIsAFloat8E5M2FNUZ,
+        mlirTypeIsAFloat8E8M0FNU,
         mlirTypeIsAFunction,
         mlirTypeIsAIndex,
         mlirTypeIsAInteger,
@@ -71,11 +74,11 @@ pub trait TypeLike<'c> {
 mod tests {
     use super::*;
     use crate::{
-        ir::{
-            r#type::{FunctionType, IntegerType},
-            Type,
-        },
         Context,
+        ir::{
+            Type,
+            r#type::{FunctionType, IntegerType},
+        },
     };
 
     #[test]
@@ -133,6 +136,45 @@ mod tests {
         let context = Context::new();
 
         assert!(Type::vector(&[42], Type::index(&context)).is_vector());
+    }
+
+    // TODO: Fix macro name generation for float4/float6 types — the regex in
+    // macro/src/utility.rs only handles `float_8_` patterns, producing
+    // inconsistent names like `is_float_4_e_2_m_1_fn` instead of
+    // `is_float4_e2m1_fn`.
+    #[test]
+    fn is_float4_e2m1_fn() {
+        let context = Context::new();
+
+        assert!(Type::float4_e2m1fn(&context).is_float_4_e_2_m_1_fn());
+    }
+
+    #[test]
+    fn is_float6_e2m3_fn() {
+        let context = Context::new();
+
+        assert!(Type::float6_e2m3fn(&context).is_float_6_e_2_m_3_fn());
+    }
+
+    #[test]
+    fn is_float6_e3m2_fn() {
+        let context = Context::new();
+
+        assert!(Type::float6_e3m2fn(&context).is_float_6_e_3_m_2_fn());
+    }
+
+    #[test]
+    fn is_float8_e3m4() {
+        let context = Context::new();
+
+        assert!(Type::float8_e3m4(&context).is_float8e3m4());
+    }
+
+    #[test]
+    fn is_float8_e8m0_fnu() {
+        let context = Context::new();
+
+        assert!(Type::float8_e8m0fnu(&context).is_float8e8m0fnu());
     }
 
     #[test]

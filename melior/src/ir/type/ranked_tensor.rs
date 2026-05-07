@@ -1,15 +1,15 @@
-use super::{shaped_type_like::ShapedTypeLike, TypeLike};
+use super::{TypeLike, shaped_type_like::ShapedTypeLike};
 use crate::{
-    ir::{attribute::AttributeLike, Attribute, Location, Type},
     Error,
+    ir::{Attribute, Location, Type, attribute::AttributeLike},
 };
 use qwerty_mlir_sys::{
-    mlirRankedTensorTypeGet, mlirRankedTensorTypeGetChecked, mlirRankedTensorTypeGetEncoding,
-    MlirType,
+    MlirType, mlirRankedTensorTypeGet, mlirRankedTensorTypeGetChecked,
+    mlirRankedTensorTypeGetEncoding,
 };
 
 /// A ranked tensor type.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Hash)]
 pub struct RankedTensorType<'c> {
     r#type: Type<'c>,
 }
@@ -54,7 +54,7 @@ impl<'c> RankedTensorType<'c> {
         if raw.ptr.is_null() {
             None
         } else {
-            Some(Self::from_raw(raw))
+            Some(unsafe { Self::from_raw(raw) })
         }
     }
 }

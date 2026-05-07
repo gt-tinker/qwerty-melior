@@ -3,14 +3,17 @@ use crate::{
     dialect::{Dialect, DialectRegistry},
     logical_result::LogicalResult,
     string_ref::StringRef,
+    thread_pool::ThreadPool,
 };
 use qwerty_mlir_sys::{
-    mlirContextAppendDialectRegistry, mlirContextAttachDiagnosticHandler, mlirContextCreate,
-    mlirContextDestroy, mlirContextDetachDiagnosticHandler, mlirContextEnableMultithreading,
-    mlirContextEqual, mlirContextGetAllowUnregisteredDialects, mlirContextGetNumLoadedDialects,
-    mlirContextGetNumRegisteredDialects, mlirContextGetOrLoadDialect,
-    mlirContextIsRegisteredOperation, mlirContextLoadAllAvailableDialects,
-    mlirContextSetAllowUnregisteredDialects, MlirContext, MlirDiagnostic, MlirLogicalResult,
+    MlirContext, MlirDiagnostic, MlirLogicalResult, mlirContextAppendDialectRegistry,
+    mlirContextAttachDiagnosticHandler, mlirContextCreate, mlirContextCreateWithRegistry,
+    mlirContextCreateWithThreading, mlirContextDestroy, mlirContextDetachDiagnosticHandler,
+    mlirContextEnableMultithreading, mlirContextEqual, mlirContextGetAllowUnregisteredDialects,
+    mlirContextGetNumLoadedDialects, mlirContextGetNumRegisteredDialects, mlirContextGetNumThreads,
+    mlirContextGetOrLoadDialect, mlirContextIsRegisteredOperation,
+    mlirContextLoadAllAvailableDialects, mlirContextSetAllowUnregisteredDialects,
+    mlirContextSetThreadPool,
 };
 use std::{ffi::c_void, marker::PhantomData, mem::transmute};
 
@@ -28,6 +31,21 @@ impl Context {
     pub fn new() -> Self {
         Self {
             raw: unsafe { mlirContextCreate() },
+        }
+    }
+
+    /// Creates a context with multithreading set explicitly.
+    pub fn new_with_threading(threading_enabled: bool) -> Self {
+        Self {
+            raw: unsafe { mlirContextCreateWithThreading(threading_enabled) },
+        }
+    }
+
+    /// Creates a context with a pre-loaded dialect registry and explicit
+    /// threading setting.
+    pub fn new_with_registry(registry: &DialectRegistry, threading_enabled: bool) -> Self {
+        Self {
+            raw: unsafe { mlirContextCreateWithRegistry(registry.to_raw(), threading_enabled) },
         }
     }
 
@@ -94,11 +112,16 @@ impl Context {
             diagnostic: MlirDiagnostic,
             user_data: *mut c_void,
         ) -> MlirLogicalResult {
-            LogicalResult::from((*(user_data as *mut F))(Diagnostic::from_raw(diagnostic))).to_raw()
+            LogicalResult::from(unsafe {
+                (*(user_data as *mut F))(Diagnostic::from_raw(diagnostic))
+            })
+            .to_raw()
         }
 
         unsafe extern "C" fn destroy<F: FnMut(Diagnostic) -> bool>(user_data: *mut c_void) {
-            drop(Box::from_raw(user_data as *mut F));
+            unsafe {
+                drop(Box::from_raw(user_data as *mut F));
+            }
         }
 
         unsafe {
@@ -114,6 +137,20 @@ impl Context {
     /// Detaches a diagnostic handler.
     pub fn detach_diagnostic_handler(&self, id: DiagnosticHandlerId) {
         unsafe { mlirContextDetachDiagnosticHandler(self.to_raw(), id.to_raw()) }
+    }
+
+    /// Sets the thread pool used by the context.
+    ///
+    /// # Safety
+    ///
+    /// The thread pool must outlive the context.
+    pub unsafe fn set_thread_pool(&self, pool: &ThreadPool) {
+        unsafe { mlirContextSetThreadPool(self.raw, pool.to_raw()) }
+    }
+
+    /// Returns the number of threads used by the context.
+    pub fn thread_count(&self) -> usize {
+        unsafe { mlirContextGetNumThreads(self.raw) as usize }
     }
 
     pub(crate) fn to_ref(&self) -> ContextRef<'_> {
@@ -183,7 +220,7 @@ impl<'c> ContextRef<'c> {
         // As we can't deref ContextRef<'a> into `&'a Context`, we forcibly cast its
         // lifetime here to extend it from the lifetime of `ObjectRef<'a>` itself into
         // `'a`.
-        transmute(self)
+        unsafe { transmute(self) }
     }
 }
 
@@ -208,6 +245,18 @@ mod tests {
     #[test]
     fn new() {
         Context::new();
+    }
+
+    #[test]
+    fn new_with_threading() {
+        Context::new_with_threading(true);
+    }
+
+    #[test]
+    fn new_with_registry() {
+        let registry = DialectRegistry::new();
+
+        Context::new_with_registry(&registry, true);
     }
 
     #[test]
@@ -326,5 +375,12 @@ mod tests {
         let ctx_ref_to_ref: &Context = unsafe { ctx_ref.to_ref() };
 
         assert_eq!(&ctx_ref, ctx_ref_to_ref);
+    }
+
+    #[test]
+    fn thread_count() {
+        let context = Context::new();
+
+        assert!(context.thread_count() >= 1);
     }
 }

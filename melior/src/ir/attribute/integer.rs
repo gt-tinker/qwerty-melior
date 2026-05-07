@@ -1,17 +1,17 @@
 use super::{Attribute, AttributeLike};
 use crate::{
-    ir::{Type, TypeLike},
-    utility::ubig_to_llvm_apint_bigvals,
     Context, Error,
+    utility::ubig_to_llvm_apint_bigvals,
+    ir::{Type, TypeLike},
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirIntegerAttrBigIntGet, mlirIntegerAttrGet, mlirIntegerAttrGetValueInt,
-    mlirIntegerAttrGetValueSInt, mlirIntegerAttrGetValueUInt, MlirAttribute,
+    MlirAttribute, mlirIntegerAttrGet, mlirIntegerAttrBigIntGet, mlirIntegerAttrGetValueInt, mlirIntegerAttrGetValueSInt,
+    mlirIntegerAttrGetValueUInt,
 };
 
 /// An integer attribute.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Hash)]
 pub struct IntegerAttribute<'c> {
     attribute: Attribute<'c>,
 }

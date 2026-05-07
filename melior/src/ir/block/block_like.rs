@@ -1,15 +1,17 @@
 use super::{BlockArgument, BlockRef, TypeLike};
 use crate::{
-    ir::{operation::OperationRefMut, Location, Operation, OperationRef, RegionRef, Type, Value},
     Error,
+    ir::{Location, Operation, OperationRef, RegionRef, Type, Value, operation::OperationRefMut},
 };
 use core::fmt::Display;
 use qwerty_mlir_sys::{
-    mlirBlockAddArgument, mlirBlockAppendOwnedOperation, mlirBlockGetArgument,
-    mlirBlockGetFirstOperation, mlirBlockGetNextInRegion, mlirBlockGetNumArguments,
-    mlirBlockGetParentOperation, mlirBlockGetParentRegion, mlirBlockGetTerminator,
+    MlirBlock, mlirBlockAddArgument, mlirBlockAppendOwnedOperation, mlirBlockEraseArgument,
+    mlirBlockGetArgument, mlirBlockGetFirstOperation, mlirBlockGetNextInRegion,
+    mlirBlockGetNumArguments, mlirBlockGetNumPredecessors, mlirBlockGetNumSuccessors,
+    mlirBlockGetParentOperation, mlirBlockGetParentRegion, mlirBlockGetPredecessor,
+    mlirBlockGetSuccessor, mlirBlockGetTerminator, mlirBlockInsertArgument,
     mlirBlockInsertOwnedOperation, mlirBlockInsertOwnedOperationAfter,
-    mlirBlockInsertOwnedOperationBefore, MlirBlock,
+    mlirBlockInsertOwnedOperationBefore,
 };
 
 /// A trait for block-like types.
@@ -140,6 +142,75 @@ pub trait BlockLike<'c, 'a>: Display + 'a {
             mlirBlockInsertOwnedOperationBefore(self.to_raw(), one.to_raw(), other);
 
             OperationRef::from_raw(other)
+        }
+    }
+
+    /// Inserts an argument at the given position.
+    ///
+    /// Existing arguments at and after `index` are shifted. Any previously
+    /// obtained `BlockArgument` handles for those positions become stale.
+    fn insert_argument(
+        &self,
+        index: usize,
+        r#type: Type<'c>,
+        location: Location<'c>,
+    ) -> Value<'c, 'a> {
+        unsafe {
+            Value::from_raw(mlirBlockInsertArgument(
+                self.to_raw(),
+                index as isize,
+                r#type.to_raw(),
+                location.to_raw(),
+            ))
+        }
+    }
+
+    /// Erases the argument at the given position.
+    ///
+    /// # Safety
+    ///
+    /// This invalidates any `BlockArgument` or `Value` handles that were
+    /// obtained for the erased argument. Using such handles after this call
+    /// is undefined behavior.
+    unsafe fn erase_argument(&self, index: usize) {
+        unsafe { mlirBlockEraseArgument(self.to_raw(), index as u32) }
+    }
+
+    /// Returns the number of successors.
+    fn successor_count(&self) -> usize {
+        unsafe { mlirBlockGetNumSuccessors(self.to_raw()) as usize }
+    }
+
+    /// Returns a successor block at a position.
+    fn successor(&self, index: usize) -> Result<BlockRef<'c, 'a>, Error> {
+        if index < self.successor_count() {
+            Ok(unsafe { BlockRef::from_raw(mlirBlockGetSuccessor(self.to_raw(), index as isize)) })
+        } else {
+            Err(Error::PositionOutOfBounds {
+                name: "block successor",
+                value: self.to_string(),
+                index,
+            })
+        }
+    }
+
+    /// Returns the number of predecessors.
+    fn predecessor_count(&self) -> usize {
+        unsafe { mlirBlockGetNumPredecessors(self.to_raw()) as usize }
+    }
+
+    /// Returns a predecessor block at a position.
+    fn predecessor(&self, index: usize) -> Result<BlockRef<'c, 'a>, Error> {
+        if index < self.predecessor_count() {
+            Ok(unsafe {
+                BlockRef::from_raw(mlirBlockGetPredecessor(self.to_raw(), index as isize))
+            })
+        } else {
+            Err(Error::PositionOutOfBounds {
+                name: "block predecessor",
+                value: self.to_string(),
+                index,
+            })
         }
     }
 

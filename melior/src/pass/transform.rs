@@ -8,6 +8,7 @@ melior_macro::passes!(
     "Transforms",
     [
         // spell-checker: disable-next-line
+        mlirCreateTransformsBubbleDownMemorySpaceCasts,
         mlirCreateTransformsCSE,
         mlirCreateTransformsCanonicalizer,
         mlirCreateTransformsCompositeFixedPointPass,

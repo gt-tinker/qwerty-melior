@@ -1,13 +1,22 @@
 //! Passes and pass managers.
 
+pub mod affine;
+pub mod arith;
 pub mod conversion;
 pub mod external;
+pub mod func;
+pub mod llvm;
 mod manager;
+pub mod math;
+pub mod memref;
 mod operation_manager;
+pub mod scf;
 pub mod transform;
+pub mod transform_dialect;
+pub mod vector;
 
 pub use self::{
-    external::{create_external, ExternalPass, RunExternalPass},
+    external::{ExternalPass, RunExternalPass, create_external},
     manager::{PassIrPrintingOptions, PassManager},
     operation_manager::OperationPassManager,
 };
@@ -46,6 +55,6 @@ impl Pass {
 
     #[doc(hidden)]
     pub unsafe fn __private_from_raw_fn(create_raw: unsafe extern "C" fn() -> MlirPass) -> Self {
-        Self::from_raw_fn(create_raw)
+        unsafe { Self::from_raw_fn(create_raw) }
     }
 }

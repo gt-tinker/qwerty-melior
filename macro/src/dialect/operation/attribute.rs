@@ -6,8 +6,8 @@ use crate::dialect::{
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use std::{collections::HashMap, sync::LazyLock};
-use syn::{parse_quote, Ident, Type};
-use tblgen::{error::TableGenError, Record};
+use syn::{Ident, Type, parse_quote};
+use tblgen::{Record, error::TableGenError};
 
 macro_rules! prefixed_string {
     ($prefix:literal, $name:ident) => {
@@ -70,7 +70,8 @@ pub struct Attribute<'a> {
 
 impl<'a> Attribute<'a> {
     pub fn new(name: &'a str, record: Record<'a>) -> Result<Self, Error> {
-        let storage_type_string = record.string_value("storageType")?;
+        // TODO Handle `?` attribute initializers properly.
+        let storage_type_string = record.string_value("storageType").unwrap_or_default();
 
         Ok(Self {
             name,
@@ -109,6 +110,10 @@ impl<'a> Attribute<'a> {
 
     pub fn is_unit(&self) -> bool {
         self.storage_type_string == mlir_attribute!(UnitAttr)
+    }
+
+    pub fn is_type(&self) -> bool {
+        self.storage_type_string.trim() == mlir_attribute!(TypeAttr)
     }
 }
 

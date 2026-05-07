@@ -1,26 +1,42 @@
 use std::{ffi::c_void, fmt::Display, fs::File, io::BufWriter, path::Path};
 
 use qwerty_mlir_sys::{
-    mlirOperationDump, mlirOperationGetAttribute, mlirOperationGetAttributeByName,
-    mlirOperationGetBlock, mlirOperationGetContext, mlirOperationGetLocation, mlirOperationGetName,
-    mlirOperationGetNextInBlock, mlirOperationGetNumAttributes, mlirOperationGetNumOperands,
+    MlirOperation, MlirValue, MlirWalkOrder_MlirWalkPostOrder, MlirWalkOrder_MlirWalkPreOrder,
+    MlirWalkResult, MlirWalkResult_MlirWalkResultAdvance, MlirWalkResult_MlirWalkResultInterrupt,
+    MlirWalkResult_MlirWalkResultSkip, mlirOperationDump, mlirOperationGetAttribute,
+    mlirOperationGetAttributeByName, mlirOperationGetBlock, mlirOperationGetContext,
+    mlirOperationGetDiscardableAttribute, mlirOperationGetDiscardableAttributeByName,
+    mlirOperationGetFirstRegion, mlirOperationGetInherentAttributeByName, mlirOperationGetLocation,
+    mlirOperationGetName, mlirOperationGetNextInBlock, mlirOperationGetNumAttributes,
+    mlirOperationGetNumDiscardableAttributes, mlirOperationGetNumOperands,
     mlirOperationGetNumRegions, mlirOperationGetNumResults, mlirOperationGetNumSuccessors,
     mlirOperationGetOperand, mlirOperationGetParentOperation, mlirOperationGetRegion,
-    mlirOperationGetResult, mlirOperationGetSuccessor, mlirOperationPrintWithFlags,
-    mlirOperationRemoveAttributeByName, mlirOperationRemoveFromParent,
-    mlirOperationSetAttributeByName, mlirOperationVerify, mlirOperationWalk, MlirOperation,
-    MlirWalkOrder_MlirWalkPostOrder, MlirWalkOrder_MlirWalkPreOrder, MlirWalkResult,
-    MlirWalkResult_MlirWalkResultAdvance, MlirWalkResult_MlirWalkResultInterrupt,
-    MlirWalkResult_MlirWalkResultSkip,
+    mlirOperationGetResult, mlirOperationGetSuccessor, mlirOperationGetTypeID,
+    mlirOperationHasInherentAttributeByName, mlirOperationHashValue,
+    mlirOperationImplementsInterface, mlirOperationImplementsInterfaceStatic,
+    mlirOperationIsBeforeInBlock, mlirOperationMoveAfter, mlirOperationMoveBefore,
+    mlirOperationPrintWithFlags, mlirOperationRemoveAttributeByName,
+    mlirOperationRemoveDiscardableAttributeByName, mlirOperationRemoveFromParent,
+    mlirOperationReplaceUsesOfWith, mlirOperationSetAttributeByName,
+    mlirOperationSetDiscardableAttributeByName, mlirOperationSetInherentAttributeByName,
+    mlirOperationSetLocation, mlirOperationSetOperand, mlirOperationSetOperands,
+    mlirOperationSetSuccessor, mlirOperationVerify, mlirOperationWalk, mlirOperationWriteBytecode,
+    mlirOperationWriteBytecodeWithConfig,
 };
 
 use crate::{
-    ir::{Attribute, AttributeLike, BlockRef, Identifier, Location, RegionRef, Value},
-    utility::{print_string_callback, print_to_file_callback},
-    ContextRef, Error, StringRef,
+    Context, ContextRef, Error, StringRef,
+    ir::{
+        Attribute, AttributeLike, Block, BlockRef, Identifier, Location, RegionRef, Value,
+        bytecode_writer_config::BytecodeWriterConfig, r#type::TypeId, value::ValueLike,
+    },
+    logical_result::LogicalResult,
 };
 
-use super::{OperationPrintingFlags, OperationRef, OperationRefMut, OperationResult};
+use super::{
+    OperationPrintingFlags, OperationRef, OperationRefMut, OperationResult, collect_bytes_callback,
+    print_string_callback, print_to_file_callback,
+};
 
 /// Order in which to traverse an operation tree.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -177,13 +193,13 @@ pub trait OperationLike<'c: 'a, 'a>: Display + 'a {
     /// Returns a attribute at a position.
     fn attribute_at(&self, index: usize) -> Result<(Identifier<'c>, Attribute<'c>), Error> {
         if index < self.attribute_count() {
-            unsafe {
-                let named_attribute = mlirOperationGetAttribute(self.to_raw(), index as isize);
-                Ok((
-                    Identifier::from_raw(named_attribute.name),
-                    Attribute::from_raw(named_attribute.attribute),
-                ))
-            }
+            let named_attribute =
+                unsafe { mlirOperationGetAttribute(self.to_raw(), index as isize) };
+
+            Ok((
+                unsafe { Identifier::from_raw(named_attribute.name) },
+                unsafe { Attribute::from_raw(named_attribute.attribute) },
+            ))
         } else {
             Err(Error::PositionOutOfBounds {
                 name: "attribute",
@@ -221,18 +237,23 @@ pub trait OperationLike<'c: 'a, 'a>: Display + 'a {
     }
 
     /// Returns a mutable reference to the next operation in the same block.
-    fn next_in_block_mut(&self) -> Option<OperationRefMut<'c, '_>> {
+    fn next_in_block_mut(&self) -> Option<OperationRefMut<'c, 'a>> {
         unsafe { OperationRefMut::from_option_raw(mlirOperationGetNextInBlock(self.to_raw())) }
     }
 
     /// Returns a reference to the previous operation in the same block.
-    fn previous_in_block(&self) -> Option<OperationRef<'c, '_>> {
+    fn previous_in_block(&self) -> Option<OperationRef<'c, 'a>> {
         todo!("mlirOperationGetPrevInBlock is not exposed in the C API")
     }
 
     /// Returns a reference to a parent operation.
-    fn parent_operation(&self) -> Option<OperationRef<'c, '_>> {
+    fn parent_operation(&self) -> Option<OperationRef<'c, 'a>> {
         unsafe { OperationRef::from_option_raw(mlirOperationGetParentOperation(self.to_raw())) }
+    }
+
+    /// Returns a mutable reference to a parent operation.
+    fn parent_operation_mut(&mut self) -> Option<OperationRefMut<'c, 'a>> {
+        unsafe { OperationRefMut::from_option_raw(mlirOperationGetParentOperation(self.to_raw())) }
     }
 
     /// Verifies an operation.
@@ -286,7 +307,42 @@ pub trait OperationLike<'c: 'a, 'a>: Display + 'a {
         Ok(())
     }
 
-    /// Walk this operation (and all nested operations) in either pre- or
+    /// Serializes an operation to bytecode.
+    fn write_bytecode(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+
+        unsafe {
+            mlirOperationWriteBytecode(
+                self.to_raw(),
+                Some(collect_bytes_callback),
+                &mut bytes as *mut _ as *mut _,
+            );
+        }
+
+        bytes
+    }
+
+    /// Serializes an operation to bytecode with a writer configuration.
+    fn write_bytecode_with_config(&self, config: &BytecodeWriterConfig) -> Result<Vec<u8>, Error> {
+        let mut bytes = Vec::new();
+
+        let result = LogicalResult::from_raw(unsafe {
+            mlirOperationWriteBytecodeWithConfig(
+                self.to_raw(),
+                config.to_raw(),
+                Some(collect_bytes_callback),
+                &mut bytes as *mut _ as *mut _,
+            )
+        });
+
+        if result.is_success() {
+            Ok(bytes)
+        } else {
+            Err(Error::WriteBytecode)
+        }
+    }
+
+    /// Walks this operation (and all nested operations) in either pre- or
     /// post-order.
     ///
     /// The closure is called once per operation; by returning
@@ -300,8 +356,8 @@ pub trait OperationLike<'c: 'a, 'a>: Display + 'a {
             operation: MlirOperation,
             data: *mut c_void,
         ) -> MlirWalkResult {
-            let callback: &mut F = &mut *(data as *mut F);
-            let operation = OperationRef::from_raw(operation);
+            let callback: &mut F = unsafe { &mut *(data as *mut F) };
+            let operation = unsafe { OperationRef::from_raw(operation) };
 
             (callback)(operation) as _
         }
@@ -313,6 +369,115 @@ pub trait OperationLike<'c: 'a, 'a>: Display + 'a {
                 &mut callback as *mut _ as *mut _,
                 order as _,
             );
+        }
+    }
+
+    /// Returns the type ID of the operation, or `None` if the operation does
+    /// not have a registered description.
+    fn type_id(&self) -> Option<TypeId<'c>> {
+        let raw = unsafe { mlirOperationGetTypeID(self.to_raw()) };
+        if raw.ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { TypeId::from_raw(raw) })
+        }
+    }
+
+    /// Returns the first region attached to the operation, if any.
+    fn first_region(&self) -> Option<RegionRef<'c, 'a>> {
+        unsafe { RegionRef::from_option_raw(mlirOperationGetFirstRegion(self.to_raw())) }
+    }
+
+    /// Returns the number of discardable attributes attached to the operation.
+    fn discardable_attribute_count(&self) -> usize {
+        unsafe { mlirOperationGetNumDiscardableAttributes(self.to_raw()) as usize }
+    }
+
+    /// Returns the discardable attribute at the given index as a
+    /// `(name, attribute)` pair.
+    fn discardable_attribute_at(
+        &self,
+        index: usize,
+    ) -> Result<(Identifier<'c>, Attribute<'c>), Error> {
+        if index < self.discardable_attribute_count() {
+            let named =
+                unsafe { mlirOperationGetDiscardableAttribute(self.to_raw(), index as isize) };
+            Ok((unsafe { Identifier::from_raw(named.name) }, unsafe {
+                Attribute::from_raw(named.attribute)
+            }))
+        } else {
+            Err(Error::PositionOutOfBounds {
+                name: "discardable attribute",
+                value: self.to_string(),
+                index,
+            })
+        }
+    }
+
+    /// Returns a discardable attribute by name.
+    fn discardable_attribute(&self, name: &str) -> Result<Attribute<'c>, Error> {
+        unsafe {
+            Attribute::from_option_raw(mlirOperationGetDiscardableAttributeByName(
+                self.to_raw(),
+                StringRef::new(name).to_raw(),
+            ))
+        }
+        .ok_or_else(|| Error::AttributeNotFound(name.into()))
+    }
+
+    /// Returns an inherent attribute by name.
+    ///
+    /// Note: even when `has_inherent_attribute` returns `true`, the attribute
+    /// value may be absent (optional attribute), causing this to return `Err`.
+    fn inherent_attribute(&self, name: &str) -> Result<Attribute<'c>, Error> {
+        unsafe {
+            Attribute::from_option_raw(mlirOperationGetInherentAttributeByName(
+                self.to_raw(),
+                StringRef::new(name).to_raw(),
+            ))
+        }
+        .ok_or_else(|| Error::AttributeNotFound(name.into()))
+    }
+
+    /// Returns `true` if the operation defines an inherent attribute with the
+    /// given name (the value may still be absent/optional).
+    fn has_inherent_attribute(&self, name: &str) -> bool {
+        unsafe {
+            mlirOperationHasInherentAttributeByName(self.to_raw(), StringRef::new(name).to_raw())
+        }
+    }
+
+    /// Returns a hash value for the operation.
+    fn hash_value(&self) -> usize {
+        unsafe { mlirOperationHashValue(self.to_raw()) }
+    }
+
+    /// Returns `true` if this operation appears before `other` in the same
+    /// block.
+    fn is_before_in_block(&self, other: OperationRef<'c, 'a>) -> bool {
+        unsafe { mlirOperationIsBeforeInBlock(self.to_raw(), other.to_raw()) }
+    }
+
+    /// Returns `true` if the operation implements the interface identified by
+    /// the given type ID.
+    fn implements_interface(&self, interface_type_id: TypeId<'c>) -> bool {
+        unsafe { mlirOperationImplementsInterface(self.to_raw(), interface_type_id.to_raw()) }
+    }
+
+    /// Returns `true` if the named operation implements the interface
+    /// identified by the given type ID, without requiring an operation
+    /// instance.
+    fn implements_interface_static(
+        name: &str,
+        context: &'c Context,
+        interface_type_id: TypeId<'c>,
+    ) -> bool {
+        unsafe {
+            mlirOperationImplementsInterfaceStatic(
+                StringRef::new(name).to_raw(),
+                context.to_raw(),
+                interface_type_id.to_raw(),
+            )
         }
     }
 }
@@ -339,5 +504,118 @@ pub trait OperationMutLike<'c: 'a, 'a>: OperationLike<'c, 'a> {
     /// Removes itself from a parent block.
     fn remove_from_parent(&mut self) {
         unsafe { mlirOperationRemoveFromParent(self.to_raw()) }
+    }
+
+    /// Moves this operation immediately after `other` in its parent block.
+    ///
+    /// `other` must already belong to a block. Ownership of this operation is
+    /// transferred to that block.
+    fn move_after(&mut self, other: OperationRef<'c, 'a>) {
+        unsafe { mlirOperationMoveAfter(self.to_raw(), other.to_raw()) }
+    }
+
+    /// Moves this operation immediately before `other` in its parent block.
+    ///
+    /// `other` must already belong to a block. Ownership of this operation is
+    /// transferred to that block.
+    fn move_before(&mut self, other: OperationRef<'c, 'a>) {
+        unsafe { mlirOperationMoveBefore(self.to_raw(), other.to_raw()) }
+    }
+
+    /// Sets the operand at `index` to `value`.
+    fn set_operand(&mut self, index: usize, value: Value<'c, 'a>) {
+        unsafe { mlirOperationSetOperand(self.to_raw(), index as isize, value.to_raw()) }
+    }
+
+    /// Replaces all operands of the operation with `values`.
+    fn set_operands(&mut self, values: &[Value<'c, 'a>]) {
+        unsafe {
+            mlirOperationSetOperands(
+                self.to_raw(),
+                values.len() as isize,
+                values.as_ptr() as *const MlirValue,
+            )
+        }
+    }
+
+    /// Sets the successor at `index` to `block`.
+    fn set_successor(&mut self, index: usize, block: &Block<'c>) {
+        unsafe { mlirOperationSetSuccessor(self.to_raw(), index as isize, block.to_raw()) }
+    }
+
+    /// Sets a discardable attribute by name, adding it if absent or replacing
+    /// it if present.
+    fn set_discardable_attribute(&mut self, name: &str, attribute: Attribute<'c>) {
+        unsafe {
+            mlirOperationSetDiscardableAttributeByName(
+                self.to_raw(),
+                StringRef::new(name).to_raw(),
+                attribute.to_raw(),
+            )
+        }
+    }
+
+    /// Removes a discardable attribute by name.
+    ///
+    /// Returns `Err` if no attribute with that name was found.
+    fn remove_discardable_attribute(&mut self, name: &str) -> Result<(), Error> {
+        unsafe {
+            mlirOperationRemoveDiscardableAttributeByName(
+                self.to_raw(),
+                StringRef::new(name).to_raw(),
+            )
+        }
+        .then_some(())
+        .ok_or_else(|| Error::AttributeNotFound(name.into()))
+    }
+
+    /// Sets the location of the operation.
+    fn set_location(&mut self, location: Location<'c>) {
+        unsafe { mlirOperationSetLocation(self.to_raw(), location.to_raw()) }
+    }
+
+    /// Replaces all uses of `of` inside this operation with `with`.
+    fn replace_uses_of_with(&mut self, of: Value<'c, 'a>, with: Value<'c, 'a>) {
+        unsafe { mlirOperationReplaceUsesOfWith(self.to_raw(), of.to_raw(), with.to_raw()) }
+    }
+
+    /// Sets an inherent attribute by name. Has no effect if `name` does not
+    /// match an inherent attribute slot of this operation.
+    fn set_inherent_attribute(&mut self, name: &str, attribute: Attribute<'c>) {
+        unsafe {
+            mlirOperationSetInherentAttributeByName(
+                self.to_raw(),
+                StringRef::new(name).to_raw(),
+                attribute.to_raw(),
+            )
+        }
+    }
+
+    /// Walks this operation (and all nested operations) in either pre- or
+    /// post-order.
+    ///
+    /// The closure is called once per operation; by returning
+    /// `WalkResult::Advance`/`Skip`/`Interrupt` you control the traversal.
+    fn walk_mut<F>(&mut self, order: WalkOrder, mut callback: F)
+    where
+        F: for<'x, 'y> FnMut(OperationRefMut<'x, 'y>) -> WalkResult,
+    {
+        // trampoline from C to Rust
+        unsafe extern "C" fn tramp<'c: 'a, 'a, F: FnMut(OperationRefMut<'c, 'a>) -> WalkResult>(
+            operation: MlirOperation,
+            data: *mut c_void,
+        ) -> MlirWalkResult {
+            let callback: &mut F = unsafe { &mut *(data as *mut F) };
+            let operation = unsafe { OperationRefMut::from_raw(operation) };
+            (callback)(operation) as _
+        }
+        unsafe {
+            mlirOperationWalk(
+                self.to_raw(),
+                Some(tramp::<'c, 'a, F>),
+                &mut callback as *mut _ as *mut _,
+                order as _,
+            );
+        }
     }
 }

@@ -1,11 +1,11 @@
 //! `arith` dialect.
 
 use crate::{
-    ir::{
-        attribute::IntegerAttribute, operation::OperationBuilder, r#type::IntegerType, Attribute,
-        Identifier, Location, Operation, Value, ValueLike,
-    },
     Context,
+    ir::{
+        Attribute, Identifier, Location, Operation, Value, ValueLike, attribute::IntegerAttribute,
+        operation::OperationBuilder, r#type::IntegerType,
+    },
 };
 
 // spell-checker: disable
@@ -24,6 +24,8 @@ pub fn constant<'c>(
 }
 
 /// `arith.cmpf` predicate
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[repr(i64)]
 pub enum CmpfPredicate {
     False,
     Oeq,
@@ -55,6 +57,8 @@ pub fn cmpf<'c>(
 }
 
 /// `arith.cmpi` predicate
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[repr(i64)]
 pub enum CmpiPredicate {
     Eq,
     Ne,
@@ -171,16 +175,16 @@ melior_macro::typed_unary_operations!(
 mod tests {
     use super::*;
     use crate::{
+        Context,
         dialect::func,
         ir::{
+            Attribute, Block, Location, Module, Region, RegionLike, Type,
             attribute::{StringAttribute, TypeAttribute},
             block::BlockLike,
             operation::OperationLike,
             r#type::FunctionType,
-            Attribute, Block, Location, Module, Region, RegionLike, Type,
         },
         test::load_all_dialects,
-        Context,
     };
 
     fn create_context() -> Context {

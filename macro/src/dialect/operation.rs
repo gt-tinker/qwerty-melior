@@ -23,21 +23,36 @@ use crate::dialect::{
 pub use operation_field::OperationField;
 use std::collections::HashSet;
 use syn::Ident;
-use tblgen::{error::WithLocation, record::Record, TypedInit};
+use tblgen::{TypedInit, error::WithLocation, record::Record};
 
 // spell-checker: disable-next-line
 const VOWELS: &str = "aeiou";
 
+/// How a generated builder populates result types.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TypeInference {
+    /// Op implements `InferTypeOpInterface` — call
+    /// `enable_result_type_inference()`.
+    Interface,
+    /// Op has `SameOperandsAndResultType` — copy `operands[0].type()` to all
+    /// results in the first-operand setter.
+    SameOperands,
+    /// Op has `FirstAttrDerivedResultType` — derive result type from the first
+    /// attribute in the first-attribute setter.
+    FirstAttrDerived,
+}
+
 #[derive(Debug)]
 pub struct Operation<'a> {
     name: String,
+    short_name: String,
     short_dialect_name: &'a str,
     dialect_name: &'a str,
     operation_name: &'a str,
     constructor_identifier: Ident,
     summary: &'a str,
     description: String,
-    can_infer_type: bool,
+    type_inference: Option<TypeInference>,
     results: Vec<OperationResult<'a>>,
     operands: Vec<Operand<'a>>,
     regions: Vec<Region<'a>>,
@@ -62,22 +77,40 @@ impl<'a> Operation<'a> {
             trait_names.contains("::mlir::OpTrait::SameVariadicResultSize"),
             trait_names.contains("::mlir::OpTrait::AttrSizedResultSegments"),
         )?;
+        let short_name = Self::build_name(definition)?;
 
         Ok(Self {
-            name: Self::build_name(definition)?,
+            name: short_name.clone() + "Operation",
+            short_name,
             dialect_name: definition.def_value("opDialect")?.name()?,
             short_dialect_name: definition.def_value("opDialect")?.str_value("name")?,
             operation_name,
             constructor_identifier: sanitize_snake_case_identifier(operation_name)?,
             summary: definition.str_value("summary")?,
             description: sanitize_documentation(definition.str_value("description")?)?,
-            can_infer_type: traits.iter().any(|r#trait| {
-                (r#trait.name() == Some("::mlir::OpTrait::FirstAttrDerivedResultType")
-                    || r#trait.name() == Some("::mlir::OpTrait::SameOperandsAndResultType"))
-                    && unfixed_result_count == 0
-                    || r#trait.name() == Some("::mlir::InferTypeOpInterface::Trait")
-                        && regions.is_empty()
-            }),
+            type_inference: {
+                let has_interface = regions.is_empty()
+                    && traits.iter().any(|r#trait| {
+                        r#trait.name() == Some("::mlir::InferTypeOpInterface::Trait")
+                    });
+                let has_same_operands = unfixed_result_count == 0
+                    && traits.iter().any(|r#trait| {
+                        r#trait.name() == Some("::mlir::OpTrait::SameOperandsAndResultType")
+                    });
+                let has_first_attr_derived = unfixed_result_count == 0
+                    && traits.iter().any(|r#trait| {
+                        r#trait.name() == Some("::mlir::OpTrait::FirstAttrDerivedResultType")
+                    });
+                if has_interface {
+                    Some(TypeInference::Interface)
+                } else if has_same_operands {
+                    Some(TypeInference::SameOperands)
+                } else if has_first_attr_derived {
+                    Some(TypeInference::FirstAttrDerived)
+                } else {
+                    None
+                }
+            },
             results,
             operands: Self::collect_operands(
                 &arguments,
@@ -94,22 +127,25 @@ impl<'a> Operation<'a> {
     fn build_name(definition: Record) -> Result<String, Error> {
         let name = definition.name()?;
 
-        Ok(if let Some((_, name)) = name.split_once('_') {
+        let name = if let Some((_, name)) = name.split_once('_') {
             name
         } else {
             name
-        }
-        .trim_end_matches("Op")
-        .to_owned()
-            + "Operation")
+        };
+
+        Ok(name.strip_suffix("Op").unwrap_or(name).to_owned())
     }
 
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    pub const fn can_infer_type(&self) -> bool {
-        self.can_infer_type
+    pub fn short_name(&self) -> &str {
+        &self.short_name
+    }
+
+    pub const fn type_inference(&self) -> Option<TypeInference> {
+        self.type_inference
     }
 
     pub const fn dialect_name(&self) -> &str {
@@ -125,13 +161,11 @@ impl<'a> Operation<'a> {
     }
 
     pub fn documentation_name(&self) -> String {
+        let article = VOWELS.contains(&self.operation_name()[..1]);
+
         format!(
             "{} [`{}`]({}) operation",
-            if VOWELS.contains(&self.operation_name()[..1]) {
-                "an"
-            } else {
-                "a"
-            },
+            if article { "an" } else { "a" },
             self.operation_name,
             &self.name
         )
@@ -190,10 +224,9 @@ impl<'a> Operation<'a> {
     }
 
     pub fn required_results(&self) -> impl Iterator<Item = &'_ OperationResult<'_>> {
-        if self.can_infer_type {
-            Default::default()
-        } else {
-            self.results.iter()
+        match self.type_inference {
+            Some(_) => Default::default(),
+            None => self.results.iter(),
         }
         .filter(|field| !field.is_optional())
     }
@@ -232,6 +265,9 @@ impl<'a> Operation<'a> {
             .dag_value("successors")?
             .args()
             .map(|(name, value)| {
+                let name = name.ok_or_else(|| {
+                    OdsError::UnnamedDagArg("successors").with_location(definition)
+                })?;
                 Successor::new(
                     name,
                     Record::try_from(value)
@@ -247,6 +283,8 @@ impl<'a> Operation<'a> {
             .dag_value("regions")?
             .args()
             .map(|(name, value)| {
+                let name = name
+                    .ok_or_else(|| OdsError::UnnamedDagArg("regions").with_location(definition))?;
                 Region::new(
                     name,
                     Record::try_from(value)
@@ -258,19 +296,16 @@ impl<'a> Operation<'a> {
     }
 
     fn collect_traits(definition: Record<'a>) -> Result<Vec<Trait>, Error> {
-        let mut trait_lists = vec![definition.list_value("traits")?];
+        let mut trait_lists = vec![definition.list_of_defs_value("traits")?];
         let mut traits = vec![];
 
         while let Some(trait_list) = trait_lists.pop() {
-            for value in trait_list.iter() {
-                let definition =
-                    Record::try_from(value).map_err(|error| error.set_location(definition))?;
-
+            for definition in trait_list {
                 if definition.subclass_of("TraitList") {
-                    trait_lists.push(definition.list_value("traits")?);
+                    trait_lists.push(definition.list_of_defs_value("traits")?);
                 } else {
                     if definition.subclass_of("Interface") {
-                        trait_lists.push(definition.list_value("baseInterfaces")?);
+                        trait_lists.push(definition.list_of_defs_value("baseInterfaces")?);
                     }
                     traits.push(Trait::new(definition)?)
                 }
@@ -287,6 +322,10 @@ impl<'a> Operation<'a> {
         definition
             .dag_value(name)?
             .args()
+            // Unnamed DAG args (e.g. `(outs AnyType)` without `$name`) are skipped.
+            // In MLIR ODS, unnamed args always appear after all named args, so
+            // filtering preserves correct positional indices for named elements.
+            .filter_map(|(name, argument)| Some((name?, argument)))
             .map(|(name, argument)| {
                 let definition =
                     Record::try_from(argument).map_err(|error| error.set_location(definition))?;
@@ -347,7 +386,8 @@ impl<'a> Operation<'a> {
             .iter()
             .filter(|(_, r#type)| r#type.is_unfixed())
             .count();
-        let mut variadic_kind = VariadicKind::new(unfixed_count, same_size, attribute_sized);
+        let mut variadic_kind = VariadicKind::new(unfixed_count, same_size, attribute_sized)
+            .map_err(|msg| Error::InvalidIdentifier(msg.to_owned()))?;
         let mut fields = vec![];
 
         for (name, r#type) in elements {

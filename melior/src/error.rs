@@ -20,6 +20,7 @@ impl Eq for IoError {}
 /// A Melior error.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Error {
+    ApplyPatterns,
     AttributeExpected(&'static str, String),
     AttributeNotFound(String),
     AttributeParse(String),
@@ -31,13 +32,17 @@ pub enum Error {
     InvokeFunction,
     OperationBuild,
     OperandNotFound(&'static str),
+    OperationExpected {
+        expected: &'static str,
+        actual: String,
+    },
     OperationResultExpected(String),
+    ParsePassPipeline(String),
     PositionOutOfBounds {
         name: &'static str,
         value: String,
         index: usize,
     },
-    ParsePassPipeline(String),
     ResultNotFound(&'static str),
     RunPass,
     TypeExpected(&'static str, String),
@@ -45,11 +50,13 @@ pub enum Error {
     PrintLLVMModule(String),
     Utf8(Utf8Error),
     IO(IoError),
+    WriteBytecode,
 }
 
 impl Display for Error {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         match self {
+            Self::ApplyPatterns => write!(formatter, "failed to apply patterns"),
             Self::AttributeExpected(r#type, attribute) => {
                 write!(formatter, "{type} attribute expected: {attribute}")
             }
@@ -71,6 +78,9 @@ impl Display for Error {
             }
             Self::OperandNotFound(name) => {
                 write!(formatter, "operand {name} not found")
+            }
+            Self::OperationExpected { expected, actual } => {
+                write!(formatter, "expected operation {expected}, got {actual}")
             }
             Self::OperationResultExpected(value) => {
                 write!(formatter, "operation result expected: {value}")
@@ -100,6 +110,7 @@ impl Display for Error {
             Self::IO(IoError(error)) => {
                 write!(formatter, "{error}")
             }
+            Self::WriteBytecode => write!(formatter, "failed to write bytecode"),
         }
     }
 }

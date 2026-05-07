@@ -1,9 +1,12 @@
 use super::{Attribute, AttributeLike};
-use crate::{Context, Error, StringRef};
-use qwerty_mlir_sys::{mlirStringAttrGet, mlirStringAttrGetValue, MlirAttribute};
+use crate::{
+    Context, Error, StringRef,
+    ir::{Type, TypeLike},
+};
+use qwerty_mlir_sys::{MlirAttribute, mlirStringAttrGet, mlirStringAttrGetValue, mlirStringAttrTypedGet};
 
 /// A string attribute.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Hash)]
 pub struct StringAttribute<'c> {
     attribute: Attribute<'c>,
 }
@@ -14,6 +17,16 @@ impl<'c> StringAttribute<'c> {
         unsafe {
             Self::from_raw(mlirStringAttrGet(
                 context.to_raw(),
+                StringRef::new(string).to_raw(),
+            ))
+        }
+    }
+
+    /// Creates a typed string attribute.
+    pub fn typed(r#type: Type<'c>, string: &str) -> Self {
+        unsafe {
+            Self::from_raw(mlirStringAttrTypedGet(
+                r#type.to_raw(),
                 StringRef::new(string).to_raw(),
             ))
         }
@@ -32,7 +45,7 @@ attribute_traits!(StringAttribute, is_string, "string");
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test::create_test_context;
+    use crate::{ir::r#type::IntegerType, test::create_test_context};
 
     #[test]
     fn value() {
@@ -40,5 +53,14 @@ mod tests {
         let value = StringAttribute::new(&context, "foo").value();
 
         assert_eq!(value, "foo");
+    }
+
+    #[test]
+    fn typed() {
+        let context = create_test_context();
+        let r#type = Type::from(IntegerType::new(&context, 32));
+        let attr = StringAttribute::typed(r#type, "hello");
+
+        assert_eq!(attr.value(), "hello");
     }
 }

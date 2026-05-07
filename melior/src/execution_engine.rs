@@ -1,9 +1,9 @@
-use crate::{ir::Module, logical_result::LogicalResult, string_ref::StringRef, Error};
+use crate::{Error, ir::Module, logical_result::LogicalResult, string_ref::StringRef};
 use bitflags::bitflags;
 use qwerty_mlir_sys::{
-    mlirExecutionEngineCreate, mlirExecutionEngineDestroy, mlirExecutionEngineDumpToObjectFile,
-    mlirExecutionEngineInvokePacked, mlirExecutionEngineLookup, mlirExecutionEngineRegisterSymbol,
-    mlirExecutionEngineRegisterSymbols, MlirExecutionEngine, MlirSymbolMapEntry,
+    MlirExecutionEngine, mlirExecutionEngineCreate, mlirExecutionEngineDestroy,
+    mlirExecutionEngineDumpToObjectFile, mlirExecutionEngineInvokePacked,
+    mlirExecutionEngineLookup, mlirExecutionEngineRegisterSymbol, mlirExecutionEngineRegisterSymbols, MlirSymbolMapEntry,
 };
 
 /// An execution engine.
@@ -32,6 +32,7 @@ impl ExecutionEngine {
         optimization_level: usize,
         shared_library_paths: &[&str],
         enable_object_dump: bool,
+        enable_pic: bool,
     ) -> Self {
         Self {
             raw: unsafe {
@@ -45,6 +46,7 @@ impl ExecutionEngine {
                         .collect::<Vec<_>>()
                         .as_ptr(),
                     enable_object_dump,
+                    enable_pic,
                 )
             },
         }
@@ -64,11 +66,13 @@ impl ExecutionEngine {
     /// argument. If those pointers are invalid or misaligned, calling this
     /// function might result in undefined behavior.
     pub unsafe fn invoke_packed(&self, name: &str, arguments: &mut [*mut ()]) -> Result<(), Error> {
-        let result = LogicalResult::from_raw(mlirExecutionEngineInvokePacked(
-            self.raw,
-            StringRef::new(name).to_raw(),
-            arguments.as_mut_ptr() as _,
-        ));
+        let result = LogicalResult::from_raw(unsafe {
+            mlirExecutionEngineInvokePacked(
+                self.raw,
+                StringRef::new(name).to_raw(),
+                arguments.as_mut_ptr() as _,
+            )
+        });
 
         if result.is_success() {
             Ok(())
@@ -85,7 +89,9 @@ impl ExecutionEngine {
     /// given pointer is invalid or misaligned, calling this function might
     /// result in undefined behavior.
     pub unsafe fn register_symbol(&self, name: &str, ptr: *mut ()) {
-        mlirExecutionEngineRegisterSymbol(self.raw, StringRef::new(name).to_raw(), ptr as _);
+        unsafe {
+            mlirExecutionEngineRegisterSymbol(self.raw, StringRef::new(name).to_raw(), ptr as _);
+        }
     }
 
     /// Similar to register_symbol() except registers many symbols at once, and
@@ -99,11 +105,13 @@ impl ExecutionEngine {
                 jitSymbolFlags: flags.bits() as u8,
             })
             .collect();
-        mlirExecutionEngineRegisterSymbols(
-            self.raw,
-            symbol_structs.len() as isize,
-            symbol_structs.as_ptr() as *const _ as *const _ as *const _,
-        );
+        unsafe {
+            mlirExecutionEngineRegisterSymbols(
+                self.raw,
+                symbol_structs.len() as isize,
+                symbol_structs.as_ptr() as *const _ as *const _ as *const _,
+            );
+        }
     }
 
     /// Dumps a module to an object file.
@@ -145,7 +153,7 @@ mod tests {
 
         assert_eq!(pass_manager.run(&mut module), Ok(()));
 
-        let engine = ExecutionEngine::new(&module, 2, &[], false);
+        let engine = ExecutionEngine::new(&module, 2, &[], false, false);
 
         let mut argument = 42;
         let mut result = -1;
@@ -189,6 +197,8 @@ mod tests {
 
         assert_eq!(pass_manager.run(&mut module), Ok(()));
 
-        ExecutionEngine::new(&module, 2, &[], true).dump_to_object_file("/tmp/melior/test.o");
+        // TODO: use `tempfile` crate
+        ExecutionEngine::new(&module, 2, &[], true, false)
+            .dump_to_object_file("/tmp/melior/test.o");
     }
 }

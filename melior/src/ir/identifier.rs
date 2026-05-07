@@ -3,8 +3,8 @@ use crate::{
     string_ref::StringRef,
 };
 use qwerty_mlir_sys::{
-    mlirIdentifierEqual, mlirIdentifierGet, mlirIdentifierGetContext, mlirIdentifierStr,
-    MlirIdentifier,
+    MlirIdentifier, mlirIdentifierEqual, mlirIdentifierGet, mlirIdentifierGetContext,
+    mlirIdentifierStr,
 };
 use std::marker::PhantomData;
 
