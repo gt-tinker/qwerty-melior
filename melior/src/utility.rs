@@ -1,13 +1,13 @@
 //! Utility functions.
 
 use crate::{
-    Error, context::Context, dialect::DialectRegistry, logical_result::LogicalResult,
-    pass, string_ref::StringRef,
+    Error, context::Context, dialect::DialectRegistry, logical_result::LogicalResult, pass,
+    string_ref::StringRef,
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    MlirStringRef, mlirParsePassPipeline, mlirRegisterAllDialects,
-    mlirRegisterAllLLVMTranslations, mlirRegisterAllPasses, mlirRegisterInlinerExtensions, mlirRegisterLLVMIRTranslations,
+    MlirStringRef, mlirParsePassPipeline, mlirRegisterAllDialects, mlirRegisterAllLLVMTranslations,
+    mlirRegisterAllPasses, mlirRegisterInlinerExtensions, mlirRegisterLLVMIRTranslations,
 };
 use std::{
     ffi::c_void,

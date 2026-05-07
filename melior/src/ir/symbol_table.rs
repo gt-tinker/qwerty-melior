@@ -1,10 +1,10 @@
 use crate::{
-    ir::{attribute::StringAttribute, Attribute, Identifier, Operation, OperationRef},
     Context, StringRef,
+    ir::{Attribute, Identifier, Operation, OperationRef, attribute::StringAttribute},
 };
 use qwerty_mlir_sys::{
-    mlirSymbolTableCreate, mlirSymbolTableDestroy, mlirSymbolTableGetVisibilityAttributeName,
-    mlirSymbolTableLookup, MlirSymbolTable,
+    MlirSymbolTable, mlirSymbolTableCreate, mlirSymbolTableDestroy,
+    mlirSymbolTableGetVisibilityAttributeName, mlirSymbolTableLookup,
 };
 use std::marker::PhantomData;
 
@@ -31,9 +31,7 @@ impl<'c> SymbolTable<'c> {
         if raw.ptr.is_null() {
             None
         } else {
-            unsafe {
-                Some(Self::from_raw(raw))
-            }
+            unsafe { Some(Self::from_raw(raw)) }
         }
     }
 

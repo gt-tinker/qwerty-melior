@@ -1,4 +1,4 @@
-use crate::{target::llvm_ir::LLVMContext, Error};
+use crate::{Error, target::llvm_ir::LLVMContext};
 use qwerty_mlir_sys::{LLVMDisposeMessage, LLVMModuleRef, LLVMPrintModuleToFile};
 use std::{
     ffi::{CStr, CString},
@@ -24,9 +24,7 @@ impl<'l> LLVMModule<'l> {
         if raw.is_null() {
             None
         } else {
-            unsafe {
-                Some(Self::from_raw(raw))
-            }
+            unsafe { Some(Self::from_raw(raw)) }
         }
     }
 

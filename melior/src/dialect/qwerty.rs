@@ -1,31 +1,30 @@
 //! `qwerty` dialect.
 
 use crate::{
-    attribute_traits,
+    Context, Error, attribute_traits,
     ir::{
+        Attribute, Identifier, Location, Operation, Region, Type, Value,
         attribute::AttributeLike,
         attribute::{
             FlatSymbolRefAttribute, FloatAttribute, IntegerAttribute, StringAttribute,
             TypeAttribute,
         },
         operation::OperationBuilder,
-        r#type::{self, IntegerType, TypeLike},
         symbol_table::Visibility,
-        Attribute, Identifier, Location, Operation, Region, Type, Value,
+        r#type::{self, IntegerType, TypeLike},
     },
     type_traits,
     utility::ubig_to_llvm_apint_bigvals,
-    Context, Error,
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    mlirQwertyApplyRevolveGeneratorAttrGet, mlirQwertyBasisAttrGet, mlirQwertyBasisAttrGetDim,
-    mlirQwertyBasisElemAttrGetFromRevolve, mlirQwertyBasisElemAttrGetFromStd,
-    mlirQwertyBasisElemAttrGetFromVeclist, mlirQwertyBasisVectorAttrGet,
-    mlirQwertyBasisVectorAttrGetHasPhase, mlirQwertyBasisVectorListAttrGet,
-    mlirQwertyBitBundleTypeGet, mlirQwertyBuiltinBasisAttrGet, mlirQwertyFunctionTypeGet,
-    mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet, mlirQwertySuperposAttrGet,
-    mlirQwertySuperposElemAttrGet, MlirAttribute, MlirType,
+    MlirAttribute, MlirType, mlirQwertyApplyRevolveGeneratorAttrGet, mlirQwertyBasisAttrGet,
+    mlirQwertyBasisAttrGetDim, mlirQwertyBasisElemAttrGetFromRevolve,
+    mlirQwertyBasisElemAttrGetFromStd, mlirQwertyBasisElemAttrGetFromVeclist,
+    mlirQwertyBasisVectorAttrGet, mlirQwertyBasisVectorAttrGetHasPhase,
+    mlirQwertyBasisVectorListAttrGet, mlirQwertyBitBundleTypeGet, mlirQwertyBuiltinBasisAttrGet,
+    mlirQwertyFunctionTypeGet, mlirQwertyFunctionTypeGetFunctionType, mlirQwertyQBundleTypeGet,
+    mlirQwertySuperposAttrGet, mlirQwertySuperposElemAttrGet,
 };
 
 // Enums
@@ -680,7 +679,7 @@ melior_macro::passes!(
 mod tests {
     use super::*;
     use crate::{
-        ir::{r#type::IntegerType, Block, BlockLike, Module, OperationLike, RegionLike},
+        ir::{Block, BlockLike, Module, OperationLike, RegionLike, r#type::IntegerType},
         test::create_test_context,
     };
 

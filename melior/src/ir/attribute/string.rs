@@ -3,7 +3,9 @@ use crate::{
     Context, Error, StringRef,
     ir::{Type, TypeLike},
 };
-use qwerty_mlir_sys::{MlirAttribute, mlirStringAttrGet, mlirStringAttrGetValue, mlirStringAttrTypedGet};
+use qwerty_mlir_sys::{
+    MlirAttribute, mlirStringAttrGet, mlirStringAttrGetValue, mlirStringAttrTypedGet,
+};
 
 /// A string attribute.
 #[derive(Clone, Copy, Hash)]

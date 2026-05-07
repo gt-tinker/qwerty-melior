@@ -1,13 +1,13 @@
 use super::{Attribute, AttributeLike};
 use crate::{
     Context, Error,
-    utility::ubig_to_llvm_apint_bigvals,
     ir::{Type, TypeLike},
+    utility::ubig_to_llvm_apint_bigvals,
 };
 use dashu::integer::UBig;
 use qwerty_mlir_sys::{
-    MlirAttribute, mlirIntegerAttrGet, mlirIntegerAttrBigIntGet, mlirIntegerAttrGetValueInt, mlirIntegerAttrGetValueSInt,
-    mlirIntegerAttrGetValueUInt,
+    MlirAttribute, mlirIntegerAttrBigIntGet, mlirIntegerAttrGet, mlirIntegerAttrGetValueInt,
+    mlirIntegerAttrGetValueSInt, mlirIntegerAttrGetValueUInt,
 };
 
 /// An integer attribute.

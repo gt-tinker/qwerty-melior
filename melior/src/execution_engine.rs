@@ -1,9 +1,10 @@
 use crate::{Error, ir::Module, logical_result::LogicalResult, string_ref::StringRef};
 use bitflags::bitflags;
 use qwerty_mlir_sys::{
-    MlirExecutionEngine, mlirExecutionEngineCreate, mlirExecutionEngineDestroy,
+    MlirExecutionEngine, MlirSymbolMapEntry, mlirExecutionEngineCreate, mlirExecutionEngineDestroy,
     mlirExecutionEngineDumpToObjectFile, mlirExecutionEngineInvokePacked,
-    mlirExecutionEngineLookup, mlirExecutionEngineRegisterSymbol, mlirExecutionEngineRegisterSymbols, MlirSymbolMapEntry,
+    mlirExecutionEngineLookup, mlirExecutionEngineRegisterSymbol,
+    mlirExecutionEngineRegisterSymbols,
 };
 
 /// An execution engine.

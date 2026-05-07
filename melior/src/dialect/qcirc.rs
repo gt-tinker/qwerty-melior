@@ -1,7 +1,7 @@
 //! `qcirc` dialect.
 
 use crate::{
-    ir::{operation::OperationBuilder, Location, Operation, OperationRef, Region, Type, Value},
+    ir::{Location, Operation, OperationRef, Region, Type, Value, operation::OperationBuilder},
     logical_result::LogicalResult,
 };
 use qwerty_mlir_sys::{mlirQCircGenerateQasm, mlirQCircGenerateQasmDestroyBuf};

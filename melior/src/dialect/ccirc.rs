@@ -1,16 +1,17 @@
 //! `ccirc` dialect.
 
 use crate::{
+    Context, Error,
     ir::{
+        Identifier, Location, Operation, Region, Type, Value,
         attribute::{BoolAttribute, IntegerAttribute, StringAttribute},
         operation::OperationBuilder,
-        r#type::TypeLike,
         symbol_table::Visibility,
-        Identifier, Location, Operation, Region, Type, Value,
+        r#type::TypeLike,
     },
-    type_traits, Context, Error,
+    type_traits,
 };
-use qwerty_mlir_sys::{mlirCCircWireTypeGet, MlirType};
+use qwerty_mlir_sys::{MlirType, mlirCCircWireTypeGet};
 
 // Types
 

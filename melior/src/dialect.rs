@@ -18,7 +18,9 @@ use crate::{
     context::{Context, ContextRef},
     string_ref::StringRef,
 };
-use qwerty_mlir_sys::{MlirDialect, mlirDialectEqual, mlirDialectGetContext, mlirDialectGetNamespace};
+use qwerty_mlir_sys::{
+    MlirDialect, mlirDialectEqual, mlirDialectGetContext, mlirDialectGetNamespace,
+};
 use std::{marker::PhantomData, str::Utf8Error};
 
 #[cfg(feature = "ods-dialects")]
