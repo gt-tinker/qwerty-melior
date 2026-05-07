@@ -150,7 +150,3 @@ pub fn wireunpack<'c>(wire: Value<'c, '_>, location: Location<'c>) -> Operation<
         .build()
         .expect("valid operation")
 }
-
-// Passes
-
-melior_macro::passes!("CCirc", [mlirCreateCCircCCircToXAGConversion]);
